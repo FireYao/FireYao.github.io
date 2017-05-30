@@ -13,7 +13,6 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
   - windows：
     下载Node.js客户端安装即可。
     在命令行输入node -v出现如下图所示就安装成功了
-
     ![Alt   text](http://oqnan33k8.bkt.clouddn.com/myblog_img/hexo_github_blog/node.png)
 <!-- more -->
   - 下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)[download](https://github.com/waylau/git-for-win)
@@ -34,7 +33,6 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
 在项目路径下打开Git Bash
  - **在本地生成静态页面**
   `hexo generate`,生成一个存放静态文件的文件夹public;该命令可以简写为:`hexo g`
-
 - **启动本地服务器**
   `hexo server`,启动服务;简写为`hexo s`;
   默认网址为：`http://localhost:4000/`
@@ -48,6 +46,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
 1. 首先注册一个GigHub帐号，注册比较简单就不再赘
 2. 帐号创建号后，需要创建一个仓库(Respository);**注意:**</b>仓库名字要与GitHub用户名一致,比如我的用户名是FireYao,创建的respository名就是FireYao.github.io
 3. 创建好respository后，进入到该respository界面,点击settings拉到最下方找到GitHub Pages,点击 **Launch automatic page generator**,让GitHub生成GitHubPager
+
 - **配置SSH Keys**
   1. 本地生成ssh密钥。
   git bash下输入`ssh-keygen -t rsa -C ‘你的邮箱地址’`
