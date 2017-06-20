@@ -14,9 +14,11 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
     下载Node.js客户端安装即可。
     在命令行输入node -v出现如下图所示就安装成功了
     ![Alt   text](http://oqnan33k8.bkt.clouddn.com/myblog_img/hexo_github_blog/node.png)
-<!-- more -->
+
   - 下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)[download](https://github.com/waylau/git-for-win)
   安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。
+
+  <!-- more -->
 
 #### 使用hexo搭建博客
  - **安装全局hexo**
@@ -29,10 +31,12 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
  - **安装hexo插件**
     `npm install hexo-server --save` 本地服务所需插件
     `npm install hexo-deployer-git --save`使用git进行部署所需插件
+
 #### 在本地生成博客静态页面并预览
 在项目路径下打开Git Bash
  - **在本地生成静态页面**
   `hexo generate`,生成一个存放静态文件的文件夹public;该命令可以简写为:`hexo g`
+
 - **启动本地服务器**
   `hexo server`,启动服务;简写为`hexo s`;
   默认网址为：`http://localhost:4000/`
@@ -60,6 +64,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
   	repo: https://github.com/FireYao/FireYao.github.io.git
   	branch: master
   ```
+  将其中的FireYao改为你自己的github用户名
   2. 重新部署项目
     在博客根目录打开Git Bash依次执行
     ```code
@@ -70,6 +75,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
     `hexo g 和 hexo d可以合并在一起写：hexo g -d`
   3. 在浏览器中访问博客
      在浏览器中输入`FireYao.github.io`,没毛病的话，你应该就能看到之前在本地搭建的那个博客页面了。
+
 ### 小结    
 <p>
   到这里已经通过Hexo创建了一个最原始的博客，并将博客的静态文件存放到github仓库中，通过外网以github的默认域名访问这个博客。
