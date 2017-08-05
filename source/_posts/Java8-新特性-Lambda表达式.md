@@ -54,39 +54,36 @@ Lambda 表达式在Java 语言中引入了一个新的语法元素和操作符�
 
 **语法格式:**
 
-1. 无参,无返回值,Lambda体只需一条语句
+**无参,无返回值,Lambda体只需一条语句**
 
-   ````java
-   Runnable runnable = (() -> System.out.println("run----"));
-   ````
+````java
+Runnable runnable = (() -> System.out.println("run----"));
+````
+**Lambda需要一个参数**
 
-2. Lambda需要一个参数
+````java
+Consumer<String> consumer = ((str) -> System.out.println(str));
+//只有一个参数时，参数小括号可以省略，如下
+Consumer<String> consumer = (str -> System.out.println(str));
+````
+**Lambda  需要两个参数，并且有返回值**
 
-   ````java
-   Consumer<String> consumer = ((str) -> System.out.println(str));
-   //只有一个参数时，参数小括号可以省略，如下
-   Consumer<String> consumer = (str -> System.out.println(str));
-   ````
+````java
+Comparator<Integer> comparator = ((num1, num2) -> {
+   return num1 - num2;
+});
+//当表达式内只有一条语句时，return和大括号可以省略，如下
+Comparator<Integer> comparator = ((num1, num2) -> num1 - num2);
+````
+**数据类型可以省略，因为可由编译器推断得出，称为“类型推断”**
 
-3. Lambda  需要两个参数，并且有返回值
+````java
+BinaryOperator<Long> binaryOperator = ((Long num1, Long num2) -> num1 + num2);
+//(Long l1, Long l2) 中参数类型可以省略，编译器可以自动推断，如下↓
+BinaryOperator<Long> binaryOperator = ((num1, num2) -> num1 + num2);
+````
 
-   ````java
-   Comparator<Integer> comparator = ((num1, num2) -> {
-      return num1 - num2;
-   });
-   //当表达式内只有一条语句时，return和大括号可以省略，如下
-   Comparator<Integer> comparator = ((num1, num2) -> num1 - num2);
-   ````
-
-4. 数据类型可以省略，因为可由编译器推断得出，称为“类型推断”
-
-   ````java
-   BinaryOperator<Long> binaryOperator = ((Long num1, Long num2) -> num1 + num2);
-   //(Long l1, Long l2) 中参数类型可以省略，编译器可以自动推断，如下↓
-   BinaryOperator<Long> binaryOperator = ((num1, num2) -> num1 + num2);
-   ````
-
-   **可以看出，相比匿名内部类，传递代码变得更为直观，不再有实现接口的模板代码，不再声明方法，也名字也没有，而是直接给出了方法的实现代码**
+**可以看出，相比匿名内部类，传递代码变得更为直观，不再有实现接口的模板代码，不再声明方法，也名字也没有，而是直接给出了方法的实现代码**
 
 #### **2.变量引用**
 
