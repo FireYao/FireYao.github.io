@@ -6,12 +6,12 @@ toc: true
 reward: false
 ---
 
-### 什么是Lambda表达式 
+### 什么是Lambda表达式
 
   **Lambda**可以理解为是一个**匿名函数**，Lambda表达式可以说是一段可以传递的代码。可以写出更简洁、更灵活的代码。作为一种更紧凑的代码风格，使Java的语言表达能力得到了提升。
 
-  在java8以前，我们是通过接口来传递代码的(面向接口的编程)。
-
+  在Java8以前，我们是通过接口来传递代码的(面向接口的编程)。
+<!-- more -->
   比如：
 
 ```java
@@ -43,6 +43,7 @@ Thread t = new Thread(() -> System.out.println("run----"));
 ```
 
 是不是简洁多了？。
+
 
 #### 1.Lambda表达式语法
 
@@ -102,7 +103,7 @@ ExecutorService executor = Executors.newFixedThreadPool(10);
 String msg = "hello world";
 msg = "good morning";
 executor.submit(() -> System.out.println(msg));
-//编译器报错 
+//编译器报错
 //Variable used in lambda expression should be final or effectively final
 ````
 
@@ -114,7 +115,4 @@ Lambda表达式不是匿名内部类，那它的类型到底是什么呢？是**
 
 下篇将讲解Java新特性，**函数式接口**
 
-​	
-
-
-
+​

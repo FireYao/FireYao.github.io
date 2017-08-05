@@ -7,7 +7,7 @@ reward: true
 
 <p>最近用使用Hexo和github搭建了一个个人博客，现在记录下来;
 Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn/docs/index.html)</p>
-
+  <!-- more -->
 ### **一、基础博客搭建流程**
 #### 安装Node和Git
   - windows：
@@ -18,7 +18,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
   - 下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)[download](https://github.com/waylau/git-for-win)
   安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。
 
-  <!-- more -->
+
 
 #### 使用hexo搭建博客
  - **安装全局hexo**

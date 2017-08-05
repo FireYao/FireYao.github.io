@@ -5,9 +5,9 @@
 # Site
 title: 火尧
 subtitle: 膜法！力量！
-description: java 火尧 coder
-author: fireYao
-language: zh-CH
+description: java coder
+author: FireYao
+language: zh-Hans
 timezone:
 
 # URL
@@ -63,7 +63,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: yilia
+theme: next
 #yilia配置
 jsonContent:
     meta: false
