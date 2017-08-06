@@ -149,7 +149,7 @@
                   for (var e = 0; e < O.length; e++) {
                       T(O[e])
                   }
-              }, 15500)
+              }, 9000)
           }, true);
           e.addEventListener("ended", function() {
               N();

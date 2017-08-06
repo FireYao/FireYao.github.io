@@ -91,18 +91,15 @@ BinaryOperator<Long> binaryOperator = ((num1, num2) -> num1 + num2);
 ​	与匿名内部类类似，Lambda表达式也可以访问定义在主体代码外部的变量，但对于局部变量，它也只能访问final类型的变量，与匿名内部类的区别是，它不要求变量声明为final，但变量事实上不能被重新赋值。比如：
 
 ````java
-ExecutorService executor = Executors.newFixedThreadPool(10);
-String msg = "hello world";
-executor.submit(() -> System.out.println(msg));
+Integer num = 1;
+Function<Integer, Integer> function = (integer -> num);
 ````
 
-可以访问局部变量msg，但msg不能被重新赋值，如果这样写：
+可以访问局部变量num，但num不能被重新赋值，如果这样写：
 
 ````java
-ExecutorService executor = Executors.newFixedThreadPool(10);
-String msg = "hello world";
-msg = "good morning";
-executor.submit(() -> System.out.println(msg));
+Integer num = 1;
+Function<Integer, Integer> function = (integer -> num++);
 //编译器报错
 //Variable used in lambda expression should be final or effectively final
 ````
