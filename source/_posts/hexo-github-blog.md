@@ -1,5 +1,6 @@
 ---
 title: Hexo+github一步一步搭建个人博客
+date: 2017-06-21 13:18:27
 tags: [博客,hexo,github]
 toc: true
 reward: true
@@ -16,7 +17,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
     ![Alt   text](http://oqnan33k8.bkt.clouddn.com/myblog_img/hexo_github_blog/node.png)
 
   - 下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)[download](https://github.com/waylau/git-for-win)
-  安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。
+      安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。
 
 
 
@@ -35,7 +36,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
 #### 在本地生成博客静态页面并预览
 在项目路径下打开Git Bash
  - **在本地生成静态页面**
-  `hexo generate`,生成一个存放静态文件的文件夹public;该命令可以简写为:`hexo g`
+     `hexo generate`,生成一个存放静态文件的文件夹public;该命令可以简写为:`hexo g`
 
 - **启动本地服务器**
   `hexo server`,启动服务;简写为`hexo s`;
@@ -53,7 +54,7 @@ Hexo是一个强大的博客框架,这里是[中文文档](https://hexo.io/zh-cn
 
 - **配置SSH Keys**
   1. 本地生成ssh密钥。
-  git bash下输入`ssh-keygen -t rsa -C ‘你的邮箱地址’`
+    git bash下输入`ssh-keygen -t rsa -C ‘你的邮箱地址’`
   2. 上传本地的公钥串，使当前电脑与GitHub账户建立联系。
   3. 在你的电脑C：\ Users\你的计算机用户名.ssh目录下打开刚刚生成的id_rsa.pub，复制里面的内容。然后点击你GitHub账户右上角的头像，选择settings，找到SSH and GPG keys，点击进入之后再点击New SSH key，title随便写，把公钥串粘贴到文本框，保存即可
 - **在Hexo配置文件中关联GitHub账号**
