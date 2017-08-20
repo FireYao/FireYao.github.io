@@ -1,6 +1,8 @@
 ---
 title: Java8 新特性 Lambda表达式
 date: 2017-08-05 13:18:27
+categories:
+- Java
 tags: [Java,Java8,Lambda]
 toc: true
 reward: false

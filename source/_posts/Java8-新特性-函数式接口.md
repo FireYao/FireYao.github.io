@@ -1,6 +1,8 @@
 ---
 title: Java8 新特性 函数式接口
 date: 2017-08-06 11:55:03
+categories:
+- Java
 tags: [Java,Java8,函数式接口]
 toc: true
 reward: false

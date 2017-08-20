@@ -1,6 +1,8 @@
 ---
 title: Hello World
 date: 2017-06-21 13:18:27
+categories:
+- 随笔
 tags: [Hello,膜法]
 toc: true
 reward: true

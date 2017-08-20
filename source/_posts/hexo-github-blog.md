@@ -1,6 +1,8 @@
 ---
 title: Hexo+github一步一步搭建个人博客
 date: 2017-06-21 13:18:27
+categories:
+- hexo
 tags: [博客,hexo,github]
 toc: true
 reward: true
