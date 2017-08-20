@@ -90,3 +90,7 @@ deploy:
   type: git
   repo: https://github.com/FireYao/FireYao.github.io.git
   branch: master
+
+# Extensions
+## Plugins: http://hexo.io/plugins/
+plugins: hexo-generate-feed

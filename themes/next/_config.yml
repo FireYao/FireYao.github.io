@@ -11,7 +11,7 @@ keywords: "Hexo, NexT"
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
 # Set rss to specific value if you have burned your feed already.
-rss:
+rss: /atom.xml
 
 # Specify the date when the site was setup
 since: 2016
@@ -103,7 +103,7 @@ social:
   GitHub: https://github.com/FireYao
   微博: http://weibo.com/u/3947710349
   知乎: https://www.zhihu.com/people/long-li-qi-8
-
+  简书: http://www.jianshu.com/u/d6280677d0bf
 social_icons:
   enable: true
   icons_only: false
@@ -121,7 +121,7 @@ social_icons:
   Instagram: instagram
   StackOverflow: stack-overflow
   微博: weibo
-
+  简书: heartbeat
 # Blog rolls
 #links_title: Links
 #links_layout: block
