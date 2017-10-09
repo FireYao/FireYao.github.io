@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>火尧</title>
+  <subtitle>膜法！力量！</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://fireyao.me/"/>
+  <updated>2017-10-09T06:12:01.181Z</updated>
+  <id>http://fireyao.me/</id>
+  
+  <author>
+    <name>FireYao</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>端口映射+nginx对外请求控制</title>
+    <link href="http://fireyao.me/2017/10/09/%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84-nginx%E5%AF%B9%E5%A4%96%E8%AF%B7%E6%B1%82%E6%8E%A7%E5%88%B6/"/>
+    <id>http://fireyao.me/2017/10/09/端口映射-nginx对外请求控制/</id>
+    <published>2017-10-09T05:59:27.000Z</published>
+    <updated>2017-10-09T06:12:01.181Z</updated>
+    
+    <content type="html"><![CDATA[<p>​    <strong>前几天接到个任务,要和另一家公司对接,具体就是我这开一个接口给对面调用.因为一开始在内网测试,那问题来了,怎么才能让对面访问到呢?</strong></p>
+<p>​        当然是找运维大兄弟…..操作也很简单,就是用路由做一个端口映射,用公网ip做一个端口映射到我本机地址.这样外网就能访问到我的tomcat了.</p>
+<p>比如说公网ip是<code>192.168.1.0</code>,我的ip是<code>192.168.1.1</code>,tomcat端口是8080.</p>
+<p>那就在路由上配一个端口9876直接映射到本地tomcat 192.168.1.1:8080.那现在外网就可以通过<code>http://192.168.1.0:9876/</code>访问到本地<code>http://192.168.1.1:8080/</code>了.</p>
+<p>就这样,做好了接口,问题又来了,因为这个接口是在核心系统里,那这样就会把所有的接口都暴露了,肯定不行..</p>
+<a id="more"></a>
+<p>怎么做呢,怎么才能拦截这些请求呢? 当然又去问了运维大兄弟,再查了些资料,得知用Nginx可以只允许访问指定的url,其他的都直接对外禁止访问.</p>
+<p>那怎么做呢?</p>
+<p>重新修改下映射规则,不直接映射到tomcat,先经过nginx,通过nginx再把请求发送到tomcat.</p>
+<p>这里就重新映射一个端口8000,在nginx中监听这个端口,然后再配置访问规则,再代理到tomcat</p>
+<p>在nginx.config中添加一段server</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="section">server</span> &#123;</div><div class="line">  		<span class="comment">#监听8080端口,这个8080是路由映射到本机的端口</span></div><div class="line">        <span class="attribute">listen</span>       <span class="number">8000</span>;</div><div class="line">        <span class="attribute">server_name</span>  <span class="number">0.0.0.0</span>;</div><div class="line">        <span class="comment">#charset koi8-r;</span></div><div class="line">        <span class="comment">#access_log  logs/host.access.log  main;</span></div><div class="line">        <span class="attribute">location</span> / &#123;</div><div class="line">    		<span class="comment">#阻止所有请求,这里将永远输出403错误</span></div><div class="line">            <span class="attribute">deny</span> all;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">  		<span class="comment">#允许访问 /test/processe接口</span></div><div class="line">        <span class="attribute">location</span> <span class="regexp">~ /test/processe</span> &#123;</div><div class="line">    		<span class="comment"># 代理本地项目url</span></div><div class="line">        	<span class="attribute">proxy_pass</span> http://192.168.4.48:8080;</div><div class="line">        &#125;</div><div class="line">  		<span class="comment">#如果还有其他接口,就再添加一个location </span></div><div class="line">  		 <span class="comment">#location ~ /test/processe1 &#123;</span></div><div class="line">        	<span class="comment">#proxy_pass http://192.168.4.48:8080;</span></div><div class="line">  		<span class="comment">#&#125;</span></div><div class="line"> 		 <span class="comment">#location ~ /test/processe2 &#123;</span></div><div class="line">        	<span class="comment">#proxy_pass http://192.168.4.48:8080;</span></div><div class="line">       	 <span class="comment">#&#125;</span></div><div class="line">        <span class="attribute">error_page</span>   <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span>  /50x.html;</div><div class="line">        <span class="attribute">location</span> = /50x.html &#123;</div><div class="line">            <span class="attribute">root</span>   html;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里的流程就是,外网通过访问公网ip+给定的端口,在路由根据映射规则,再访问到我这台电脑,这个时候请求不是直接去访问本机的接口,而是进入了Nginx,在这里,会去检查请求的url是否与配置允许的地址相同,不同的话就会403 Forbidden错误啦,当uri是<code>/test/processe</code>时,就能访问实际代理的<code>http://192.168.4.48:8080/test/processe</code>接口了</p>
+<p>那这样就可以让对面只能访问指定的接口.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;​    &lt;strong&gt;前几天接到个任务,要和另一家公司对接,具体就是我这开一个接口给对面调用.因为一开始在内网测试,那问题来了,怎么才能让对面访问到呢?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;​        当然是找运维大兄弟…..操作也很简单,就是用路由做一个端口映射,用公网ip做一个端口映射到我本机地址.这样外网就能访问到我的tomcat了.&lt;/p&gt;
+&lt;p&gt;比如说公网ip是&lt;code&gt;192.168.1.0&lt;/code&gt;,我的ip是&lt;code&gt;192.168.1.1&lt;/code&gt;,tomcat端口是8080.&lt;/p&gt;
+&lt;p&gt;那就在路由上配一个端口9876直接映射到本地tomcat 192.168.1.1:8080.那现在外网就可以通过&lt;code&gt;http://192.168.1.0:9876/&lt;/code&gt;访问到本地&lt;code&gt;http://192.168.1.1:8080/&lt;/code&gt;了.&lt;/p&gt;
+&lt;p&gt;就这样,做好了接口,问题又来了,因为这个接口是在核心系统里,那这样就会把所有的接口都暴露了,肯定不行..&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="开发随记" scheme="http://fireyao.me/categories/%E5%BC%80%E5%8F%91%E9%9A%8F%E8%AE%B0/"/>
+    
+    
+      <category term="Nginx" scheme="http://fireyao.me/tags/Nginx/"/>
+    
+      <category term="开发随记" scheme="http://fireyao.me/tags/%E5%BC%80%E5%8F%91%E9%9A%8F%E8%AE%B0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Java8-新特性-Stream</title>
+    <link href="http://fireyao.me/2017/08/20/Java8-%E6%96%B0%E7%89%B9%E6%80%A7-Stream/"/>
+    <id>http://fireyao.me/2017/08/20/Java8-新特性-Stream/</id>
+    <published>2017-08-20T06:09:12.000Z</published>
+    <updated>2017-08-21T01:24:50.079Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="了解Stream"><a href="#了解Stream" class="headerlink" title="了解Stream"></a>了解Stream</h3><p>​    Java8中有两个最为重要的改变，一个是Lambda表达式，另一个就是<strong>Stream API</strong>,针对常见的集合数据处理，Stream API 提供了一种高效且易于使用的数据处理方式。</p>
+<h3 id="什么是Stream"><a href="#什么是Stream" class="headerlink" title="什么是Stream"></a>什么是Stream</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>​    流(Stream)用于操作数据源所生成的元素序列。Java 8给Collection接口增加了两个默认方法，它们可以返回一个Stream</p>
+<blockquote>
+<p>default Stream<e> stream() {<br>​    return StreamSupport.stream(spliterator(), false);<br>}//stream()返回的是一个顺序流</e></p>
+<p>default Stream<e> parallelStream() {<br>​    return StreamSupport.stream(spliterator(), true);<br>}//parallelStream()返回的是一个并发流</e></p>
+</blockquote>
+<ol>
+<li><strong>Stream 自己不会存储元素。</strong></li>
+<li><strong>Stream 不会改变源对象。相反，他们会返回一个持有结果的新Stream。</strong></li>
+<li><strong>Stream 操作是延迟执行的。这意味着他们会等到需要结果的时候才执行。</strong></li>
+</ol>
+<a id="more"></a>
+<h4 id="基本示例"><a href="#基本示例" class="headerlink" title="基本示例"></a>基本示例</h4><p>首先这里有一个Employee类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</div><div class="line">   <span class="keyword">private</span> <span class="keyword">int</span> id;</div><div class="line">   <span class="keyword">private</span> String name;</div><div class="line">   <span class="keyword">private</span> <span class="keyword">int</span> age;</div><div class="line">   <span class="keyword">private</span> <span class="keyword">double</span> salary;</div><div class="line">   <span class="comment">/*省略getter setter Constructor*/</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//Employee列表</span></div><div class="line">List&lt;Employee&gt; emps = Arrays.asList(</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">102</span>, <span class="string">"李四"</span>, <span class="number">59</span>, <span class="number">6666.66</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">101</span>, <span class="string">"张三"</span>, <span class="number">18</span>, <span class="number">9999.99</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">103</span>, <span class="string">"王五"</span>, <span class="number">28</span>, <span class="number">3333.33</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">104</span>, <span class="string">"赵六"</span>, <span class="number">20</span>, <span class="number">7777.77</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">104</span>, <span class="string">"赵六"</span>, <span class="number">19</span>, <span class="number">7777.77</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">104</span>, <span class="string">"赵四"</span>, <span class="number">40</span>, <span class="number">7777.77</span>),</div><div class="line">      <span class="keyword">new</span> Employee(<span class="number">105</span>, <span class="string">"田七"</span>, <span class="number">38</span>, <span class="number">5555.55</span>)</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>返回薪资大于5000的员工列表,java8以前是这样做的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Employee&gt; newEmps = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span>(Employee emp : emps)&#123;</div><div class="line">  <span class="keyword">if</span>(emp.salary &gt; <span class="number">5000.00</span>)&#123;</div><div class="line">    newEmps.add(emp);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>使用Stream API ,代码可以这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Employee&gt; newEmps = emps.stream()</div><div class="line">        .filter(s -&gt; s.getSalary() &gt; <span class="number">5000.00</span>)</div><div class="line">        .collect(Collectors.toList());</div></pre></td></tr></table></figure>
+<p>先通过stream()得到一个Stream对象，然后调用Stream上的方法，filter()过滤得到薪资大于5000的,它的返回值依然是一个Stream,然后通过调用collect()方法并传递一个Collectors.toList()将结果集存放到一个List中.</p>
+<p>使用Stream API处理集合类代码更加简洁易读.</p>
+<p>下面介绍一下Stream中的两种操作</p>
+<h4 id="Stream的中间操作和终止操作"><a href="#Stream的中间操作和终止操作" class="headerlink" title="Stream的中间操作和终止操作"></a>Stream的中间操作和终止操作</h4><p><strong>中间操作</strong>:</p>
+<p>​    多个 中间操作可以连接起来形成一个 流水线，除非流水线上触发终止操作，否则 中间操作不会执行任何的 处理！而在 终止操作时一次性全部 处理，称为“惰性求值”</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">方法</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">filter(Predicate p)</td>
+<td style="text-align:center">接收 Lambda ， 从流中排除某些元素。</td>
+</tr>
+<tr>
+<td style="text-align:center">distinct()</td>
+<td style="text-align:center">筛选，通过流所生成元素的 hashCode() 和 equals() 去</td>
+</tr>
+<tr>
+<td style="text-align:center">limit(long maxSize)</td>
+<td style="text-align:center">截断流，使其元素不超过给定数量。</td>
+</tr>
+<tr>
+<td style="text-align:center">map(Function f)</td>
+<td style="text-align:center">接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。</td>
+</tr>
+<tr>
+<td style="text-align:center">flatMap(Function f)</td>
+<td style="text-align:center">接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流</td>
+</tr>
+<tr>
+<td style="text-align:center">sorted(Comparator comp)</td>
+<td style="text-align:center">产生一个新流，其中按比较器顺序排序</td>
+</tr>
+<tr>
+<td style="text-align:center">sorted()</td>
+<td style="text-align:center">产生一个新流，其中按自然顺序排序</td>
+</tr>
+</tbody>
+</table>
+<p><strong>终止操作</strong>:</p>
+<p>​    终端操作会从流的流水线生成结果。其结果可以是任何不是流的值，例如：List、Integer，甚至是 void 。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">方法</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">forEach(Consumer c)</td>
+<td style="text-align:center">内部迭代</td>
+</tr>
+<tr>
+<td style="text-align:center">collect(Collector c)</td>
+<td style="text-align:center">将流转换为其他形式。接收一个 Collector接口的实现，用于给Stream中元素做汇总的方法</td>
+</tr>
+<tr>
+<td style="text-align:center">max(Comparator c)</td>
+<td style="text-align:center">返回流中最大值</td>
+</tr>
+<tr>
+<td style="text-align:center">min(Comparator c)</td>
+<td style="text-align:center">返回流中最小值</td>
+</tr>
+<tr>
+<td style="text-align:center">count()</td>
+<td style="text-align:center">返回流中元素总数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>收集</strong> : collect(Collector c)方法需要一个Collector 作为参数,Collector 接口中方法的实现决定了如何对流执行收集操作(如收集到 List、Set、Map)。Java8中提供了一个Collectors工具类, 工具中提供了很多静态方法，可以方便地创建常见收集器例</p>
+<p>具体方法与实例如下表</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">方法</th>
+<th style="text-align:center">返回类型</th>
+<th style="text-align:center">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">toList</td>
+<td style="text-align:center">List<t></t></td>
+<td style="text-align:center">把流中元素收集到List</td>
+</tr>
+<tr>
+<td style="text-align:center">toSet</td>
+<td style="text-align:center">Set<t></t></td>
+<td style="text-align:center">把流中元素收集到Set</td>
+</tr>
+<tr>
+<td style="text-align:center">toCollection</td>
+<td style="text-align:center">Collection<t></t></td>
+<td style="text-align:center">把流中元素收集到创建的集合</td>
+</tr>
+<tr>
+<td style="text-align:center">groupingBy</td>
+<td style="text-align:center">Map<k, list<t="">&gt;</k,></td>
+<td style="text-align:center">根据某属性值对流分组，属性为K，结果为V</td>
+</tr>
+<tr>
+<td style="text-align:center">partitioningBy</td>
+<td style="text-align:center">Map<boolean, list<t="">&gt;</boolean,></td>
+<td style="text-align:center">根据true或false进行分区</td>
+</tr>
+</tbody>
+</table>
+<p>这里只列出了一些常用的方法.具体参考Java8 Stream API</p>
+<h3 id="Stream-API-使用"><a href="#Stream-API-使用" class="headerlink" title="Stream API 使用"></a>Stream API 使用</h3><h4 id="中间操作"><a href="#中间操作" class="headerlink" title="中间操作"></a>中间操作</h4><ol>
+<li><p>映射(map/flatMap)</p>
+<blockquote>
+<p>map——接收 Lambda ， 将元素转换成其他形式或提取信息。接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。</p>
+<p><code>&lt;R&gt; Stream&lt;R&gt; map(Function&lt;? super T, ? extends R&gt; mapper);</code></p>
+<p>map操作会将流里的每个元素按mapper转换后的结果(不管是) 添加到一个新流中.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">"1,2"</span>, <span class="string">"3,4"</span>);</div><div class="line"><span class="comment">//每次mapper操作返回一个数组,将每个数组添加到新流中,最终生成Stream&lt;String[]&gt;</span></div><div class="line">Stream&lt;String[]&gt; stream = list.stream().map(s -&gt; s.split(<span class="string">","</span>));</div><div class="line"><span class="comment">//每次mapper操作返回一个流Stream&lt;String&gt;,将每个流添加到新流中,最终生成Stream&lt;Stream&lt;String&gt;&gt;</span></div><div class="line">Stream&lt;Stream&lt;String&gt;&gt; streamStream = list.stream().map(s -&gt; Arrays.stream(s.split(<span class="string">","</span>)));</div></pre></td></tr></table></figure>
+<blockquote>
+<p>flatMap——接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流</p>
+<p><code>&lt;R&gt; Stream&lt;R&gt; flatMap(Function&lt;? super T, ? extends Stream&lt;? extends R&gt;&gt; mapper)</code></p>
+<p>它接受一个函数mapper，对流中的每一个元素，mapper会将该元素转换为一个流Stream，然后把新生成流的每一个元素传递给下一个操作.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">"1,2"</span>, <span class="string">"3,4"</span>);</div><div class="line"><span class="comment">//每次mapper操作返回一个流Stream&lt;String&gt; 然后将流里的每个元素添加到新流中,最终生成Stream&lt;String&gt;</span></div><div class="line">Stream&lt;String&gt; stringStream = list.stream().flatMap(s -&gt; Arrays.stream(s.split(<span class="string">","</span>)));</div></pre></td></tr></table></figure>
+<blockquote>
+<p>flatMap 把 Stream 中的层级结构扁平化，就是将最底层元素抽出来放到一起，最终生成的新 Stream 里面都是直接的字符串。</p>
+</blockquote>
+</li>
+<li><p>排序(sort)</p>
+<blockquote>
+<p>sorted() ——自然排序(根据流中元素实现的Comparable接口的compareTo()方法来排序的)</p>
+<p>sorted(Comparator com) ——定制排序(根据特定的比较器来排序)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">0</span>,<span class="number">9</span>,<span class="number">8</span>,<span class="number">5</span>);</div><div class="line">Stream&lt;Integer&gt; sorted = list.stream().sorted();</div><div class="line">sorted.forEach(System.out::print);</div><div class="line"><span class="comment">/*</span></div><div class="line"> 输出结果: 0134589</div><div class="line">*/</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">emps.stream()</div><div class="line">        .sorted((x, y) -&gt; &#123;</div><div class="line">            <span class="keyword">if</span> (x.getAge() == y.getAge()) &#123;</div><div class="line">                <span class="keyword">return</span> x.getName().compareTo(y.getName());</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">return</span> Integer.compare(x.getAge(), y.getAge());</div><div class="line">            &#125;</div><div class="line">        &#125;).forEach(System.out::println);</div><div class="line"><span class="comment">/*</span></div><div class="line">	指定比较规则,按姓名排序,姓名相同的再根据年龄排序</div><div class="line">*/</div></pre></td></tr></table></figure>
+</li>
+<li><p>筛选与切片</p>
+<blockquote>
+<p>filter : 接受Lambda,从流中排除某些元素</p>
+<p>limit(n) : 返回流中前n个元素</p>
+<p>skip(n) : 跳过流中前n个元素</p>
+<p>distinct : 去掉流中重复元素(通过hashCode和equles方法判断是否为相同对象)</p>
+</blockquote>
+<p><strong>filter</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 筛选出姓赵的员工</span></div><div class="line">Stream&lt;Employee&gt; resultStream = emps.stream()</div><div class="line">        .filter(employee -&gt;</div><div class="line">                employee.getName().startsWith(<span class="string">"赵"</span>));</div><div class="line">resultStream.forEach(System.out::println);</div><div class="line"><span class="comment">/*</span></div><div class="line">	输出结果:</div><div class="line">	Employee [id=104, name=赵六, age=20, salary=7777.77]</div><div class="line">	Employee [id=104, name=赵六, age=19, salary=7777.77]</div><div class="line">	Employee [id=104, name=赵四, age=40, salary=7777.77]</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p><strong>limit</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//获取列表前3个员工</span></div><div class="line">Stream&lt;Employee&gt; limit = emps.stream().limit(<span class="number">3</span>);</div><div class="line">limit.forEach(System.out::println);</div><div class="line"><span class="comment">/*</span></div><div class="line">	Employee [id=102, name=李四, age=59, salary=6666.66]</div><div class="line">	Employee [id=101, name=张三, age=18, salary=9999.99]</div><div class="line">	Employee [id=103, name=王五, age=28, salary=3333.33]</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p><strong>skin</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//去掉前3个员工</span></div><div class="line">Stream&lt;Employee&gt; limit = emps.stream().skip(<span class="number">3</span>);</div><div class="line">limit.forEach(System.out::println);</div><div class="line"><span class="comment">/*</span></div><div class="line">	Employee [id=104, name=赵六, age=20, salary=7777.77]</div><div class="line">	Employee [id=104, name=赵六, age=19, salary=7777.77]</div><div class="line">	Employee [id=104, name=赵四, age=40, salary=7777.77]</div><div class="line">	Employee [id=105, name=田七, age=38, salary=5555.55]</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p><strong>distinct</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>);</div><div class="line">Stream&lt;Integer&gt; distinct = list.stream().distinct();<span class="comment">//去掉重复元素</span></div><div class="line">distinct.forEach(System.out::print);</div><div class="line"><span class="comment">/*</span></div><div class="line">	123456</div><div class="line">*/</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="终止操作"><a href="#终止操作" class="headerlink" title="终止操作"></a>终止操作</h4><ol>
+<li><p>查找与匹配</p>
+<blockquote>
+<p>allMatch——检查是否匹配所有元素<br>anyMatch——检查是否至少匹配一个元素<br>noneMatch——检查是否没有匹配的元素<br>findFirst——返回第一个元素<br>findAny——返回当前流中的任意元素<br>count——返回流中元素的总个数<br>max——返回流中最大值<br>min——返回流中最小值</p>
+</blockquote>
+<p><strong>allMatch</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>);</div><div class="line"><span class="keyword">boolean</span> b = list.stream().allMatch(i -&gt; i &lt; <span class="number">10</span>);<span class="comment">//检查所有元素是否都小于10</span></div><div class="line"><span class="comment">//true</span></div></pre></td></tr></table></figure>
+<p><strong>anyMatch</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>);</div><div class="line"><span class="keyword">boolean</span> b = list.stream().anyMatch(i -&gt; i &lt; <span class="number">2</span>);<span class="comment">//检查是否至少有一个元素小于2</span></div><div class="line"><span class="comment">//true</span></div></pre></td></tr></table></figure>
+<p><strong>noneMatch</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>);</div><div class="line"><span class="keyword">boolean</span> b = list.stream().noneMatch(i -&gt; i &lt; <span class="number">2</span>);<span class="comment">//检查是否没有一个元素小于2</span></div><div class="line"><span class="comment">//false</span></div></pre></td></tr></table></figure>
+<p><strong>findFirst</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//返回list第一个元素</span></div><div class="line">Optional&lt;Integer&gt; any = list.stream().findFirst();</div><div class="line">System.out.println(any.get());</div></pre></td></tr></table></figure>
+<blockquote>
+<p><code>Optional&lt;T&gt;</code> 类是一个是一个容器类,代表一个值存在或不存在,原来用 null 表示一个值不存在,现在<code>Optional&lt;T&gt;</code>可以更好的表达这个概念,并且可以避免空指针异常</p>
+<p>这里findFirst()查找第一个元素有可能为空,就把结果封装成一个Optional类.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>);</div><div class="line"><span class="keyword">long</span> count = list.stream().count();<span class="comment">//统计元素个数</span></div><div class="line">System.out.println(count);<span class="comment">//6</span></div><div class="line">Optional&lt;Integer&gt; max = list.stream().max(Integer::compareTo);<span class="comment">//最大值</span></div><div class="line">System.out.println(max.get());<span class="comment">//6</span></div><div class="line">Optional&lt;Integer&gt; min = list.stream().min(Integer::compareTo);<span class="comment">//最小值</span></div><div class="line">System.out.println(min.get());<span class="comment">//1</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>规约(reduce)</p>
+<blockquote>
+<p>`reduce(T identity, BinaryOperator bo) / reduce(BinaryOperator) ——可以将流中元素按照指定的二院运算反复结合起来，得到一个值</p>
+<p>identity : 起始值</p>
+<p>BinaryOperator  : 二元运算</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; list = Arrays.asList(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>);</div><div class="line">Integer sum = list.stream()</div><div class="line">   .reduce(<span class="number">0</span>, (x, y) -&gt; x + y);</div><div class="line">System.out.println(sum);</div><div class="line"><span class="comment">/*</span></div><div class="line">	输出结果 55</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p>这里reduce操作中,起始值为0,第一次x为0,list中第一个元素1为y 经行(x+y)操作,然后又把(x+y)的值作为x, list中第二个元素2作为y,依次累加.最终得到一个sum值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Optional&lt;Double&gt; op = emps.stream()</div><div class="line">   .map(Employee::getSalary)</div><div class="line">   .reduce(Double::sum);<span class="comment">//计算所有员工薪资总和</span></div><div class="line">System.out.println(op.get());</div></pre></td></tr></table></figure>
+<blockquote>
+<p>这个地方由于没有初始值,计算结果可能为空(列表为空的情况),所以就把计算结果封装到Optional中避免空指针异常</p>
+</blockquote>
+</li>
+<li><p>收集(collect)</p>
+<blockquote>
+<p>collect——将流转换为其他形式。接收一个 Collector接口的实现，用于给Stream中元素做汇总的方法</p>
+<p><code>&lt;R, A&gt; R collect(Collector&lt;? super T, A, R&gt; collector);</code></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//收集员工姓名到List集合</span></div><div class="line">List&lt;String&gt; list = emps.stream()</div><div class="line">   .map(Employee::getName)</div><div class="line">   .collect(Collectors.toList());</div><div class="line">list.forEach(System.out::print);</div><div class="line"><span class="comment">// 输出: 李四张三王五赵六赵六赵六田七</span></div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//收集员工姓名到Set集合</span></div><div class="line">Set&lt;String&gt; set = emps.stream()</div><div class="line">   .map(Employee::getName)</div><div class="line">   .collect(Collectors.toSet());</div><div class="line">set.forEach(System.out::println);</div><div class="line"><span class="comment">// 输出 : 李四张三王五赵六田七</span></div><div class="line"><span class="comment">//------------------------------------</span></div><div class="line">HashSet&lt;String&gt; hs = emps.stream()</div><div class="line">    .map(Employee::getName)</div><div class="line">    .collect(Collectors.toCollection(HashSet::<span class="keyword">new</span>));</div><div class="line">hs.forEach(System.out::println);</div><div class="line"><span class="comment">// 输出 : 李四张三王五赵六田七</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>分组</p>
+<blockquote>
+<p>groupingBy : 根据指定的元素对流中数据进行分组</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//按照员工姓氏分组,这里不考虑复姓</span></div><div class="line">Map&lt;String, List&lt;Employee&gt;&gt; collect = emps.stream()</div><div class="line">        .collect(Collectors</div><div class="line">                .groupingBy(emp -&gt; String.valueOf(emp.getName().charAt(<span class="number">0</span>))));</div><div class="line">collect.forEach((k, v) -&gt; &#123;</div><div class="line">    System.out.println(k + <span class="string">":"</span> + v);</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<blockquote>
+<p>输出结果为:</p>
+<p>田:[Employee [id=105, name=田七, age=38, salary=5555.55]</p>
+<p>张:[Employee [id=101, name=张三, age=18, salary=9999.99]</p>
+<p>赵:[Employee [id=104, name=赵六, age=20, salary=7777.77], </p>
+<p>​     Employee [id=104, name=赵六, age=19, salary=7777.77], </p>
+<p>​     Employee [id=104, name=赵四, age=40, salary=7777.77]]</p>
+<p>王:[Employee [id=103, name=王五, age=28, salary=3333.33]<br>李:[Employee [id=102, name=李四, age=59, salary=6666.66]</p>
+</blockquote>
+</li>
+<li><p>分区</p>
+<blockquote>
+<p>partitioningBy : 按照给定条件对流中元素进行分区</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//将员工以薪资6000.00为界限分区</span></div><div class="line">Map&lt;Boolean, List&lt;Employee&gt;&gt; collect = emps.stream()</div><div class="line">        .collect(Collectors.partitioningBy(e -&gt; e.getSalary() &gt; <span class="number">6000.00</span>));</div><div class="line">collect.forEach((k, v) -&gt; &#123;</div><div class="line">    System.out.println(k + <span class="string">":"</span> + v);</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<blockquote>
+<p>输出结果为:</p>
+<p>false:[Employee [id=103, name=王五, age=28, salary=3333.33], </p>
+<p>​    Employee [id=105, name=田七, age=38, salary=5555.55]]</p>
+<p>true:[Employee [id=102, name=李四, age=59, salary=6666.66], </p>
+<p>​    Employee [id=101, name=张三, age=18, salary=9999.99], </p>
+<p>​    Employee [id=104, name=赵六, age=20, salary=7777.77], </p>
+<p>​    Employee [id=104, name=赵六, age=19, salary=7777.77], </p>
+<p>​    Employee [id=104, name=赵四, age=40, salary=7777.77]]</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="Optional-类"><a href="#Optional-类" class="headerlink" title="Optional 类"></a>Optional 类</h3><h4 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h4><blockquote>
+<p>Optional 容器类：用于尽量避免空指针异常</p>
+</blockquote>
+<p><strong>方法</strong></p>
+<blockquote>
+<p>Optional 容器类：用于尽量避免空指针异常</p>
+<p>Optional.of(T t) : 创建一个 Optional 实例</p>
+<p>Optional.empty() : 创建一个空的 Optional 实例</p>
+<p>Optional.ofNullable(T t):若 t 不为 null,创建 Optional 实例,否则创建空实例</p>
+<p>isPresent() : 判断是否包含值</p>
+<p>orElse(T t) :  如果调用对象包含值，返回该值，否则返回t</p>
+<p>orElseGet(Supplier s) :如果调用对象包含值，返回该值，否则返回 s 获取的值</p>
+<p>map(Function f): 如果有值对其处理，并返回处理后的Optional，否则返回 Optional.empty()</p>
+<p>flatMap(Function mapper):与 map 类似，要求返回值必须是Optional</p>
+</blockquote>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><blockquote>
+<p>Stream 是 Java8 中处理集合的关键抽象概念，它可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作。使用Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询。也可以使用 Stream API 来并行执行操作。</p>
+<p>简而言之，Stream API 提供了一种高效且易于使用的处理数据的方式</p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;了解Stream&quot;&gt;&lt;a href=&quot;#了解Stream&quot; class=&quot;headerlink&quot; title=&quot;了解Stream&quot;&gt;&lt;/a&gt;了解Stream&lt;/h3&gt;&lt;p&gt;​    Java8中有两个最为重要的改变，一个是Lambda表达式，另一个就是&lt;strong&gt;Stream API&lt;/strong&gt;,针对常见的集合数据处理，Stream API 提供了一种高效且易于使用的数据处理方式。&lt;/p&gt;
+&lt;h3 id=&quot;什么是Stream&quot;&gt;&lt;a href=&quot;#什么是Stream&quot; class=&quot;headerlink&quot; title=&quot;什么是Stream&quot;&gt;&lt;/a&gt;什么是Stream&lt;/h3&gt;&lt;h4 id=&quot;基本概念&quot;&gt;&lt;a href=&quot;#基本概念&quot; class=&quot;headerlink&quot; title=&quot;基本概念&quot;&gt;&lt;/a&gt;基本概念&lt;/h4&gt;&lt;p&gt;​    流(Stream)用于操作数据源所生成的元素序列。Java 8给Collection接口增加了两个默认方法，它们可以返回一个Stream&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;default Stream&lt;e&gt; stream() {&lt;br&gt;​    return StreamSupport.stream(spliterator(), false);&lt;br&gt;}//stream()返回的是一个顺序流&lt;/e&gt;&lt;/p&gt;
+&lt;p&gt;default Stream&lt;e&gt; parallelStream() {&lt;br&gt;​    return StreamSupport.stream(spliterator(), true);&lt;br&gt;}//parallelStream()返回的是一个并发流&lt;/e&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Stream 自己不会存储元素。&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stream 不会改变源对象。相反，他们会返回一个持有结果的新Stream。&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stream 操作是延迟执行的。这意味着他们会等到需要结果的时候才执行。&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+    
+    </summary>
+    
+      <category term="Java" scheme="http://fireyao.me/categories/Java/"/>
+    
+    
+      <category term="Java" scheme="http://fireyao.me/tags/Java/"/>
+    
+      <category term="Java8" scheme="http://fireyao.me/tags/Java8/"/>
+    
+      <category term="Stream" scheme="http://fireyao.me/tags/Stream/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Java8 新特性 函数式接口</title>
+    <link href="http://fireyao.me/2017/08/06/Java8-%E6%96%B0%E7%89%B9%E6%80%A7-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3/"/>
+    <id>http://fireyao.me/2017/08/06/Java8-新特性-函数式接口/</id>
+    <published>2017-08-06T03:55:03.000Z</published>
+    <updated>2017-08-21T01:24:50.088Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="什么是函数式接口"><a href="#什么是函数式接口" class="headerlink" title="什么是函数式接口"></a>什么是函数式接口</h3><p>​    <strong>Java 8引入了函数式接口的概念</strong></p>
+<p>​    1). 只包含一个抽象方法的接口，称为<strong>函数式接口</strong></p>
+<p>​    2). 函数式接口可以被隐式转换为lambda表达式。</p>
+<p>​    3). 在任意函数式接口上使用@FunctionalInterface注解，这样做可以检查它是否是一个函数式接口，同时javadoc 也会包含一条声明，说明这个接口是一个函数式接口。</p>
+<a id="more"></a>
+<h3 id="预定义的函数式接口"><a href="#预定义的函数式接口" class="headerlink" title="预定义的函数式接口"></a>预定义的函数式接口</h3><p>​    Java 8定义了大量的预定义函数式接口，用于常见类型的代码传递，这些函数定义在包java.util.function下，</p>
+<p>其中有四大核心函数式接口。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数式接口</th>
+<th style="text-align:center">参数类型</th>
+<th style="text-align:center">返回类型</th>
+<th style="text-align:center">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Consumer<t>(消费型接口)</t></td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">void</td>
+<td style="text-align:center">对类型为T的对象应用操作。void accept(T t)</td>
+</tr>
+<tr>
+<td style="text-align:center">Supplier<t>(供给型接口)</t></td>
+<td style="text-align:center">无</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">返回类型为T的对象。 T get();</td>
+</tr>
+<tr>
+<td style="text-align:center">Function<t, r="">(函数型接口)</t,></td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">R</td>
+<td style="text-align:center">对类型为T的对象应用操作并返回R类型的对象。R apply(T t);</td>
+</tr>
+<tr>
+<td style="text-align:center">Predicate<t>(断言型接口)</t></td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">boolean</td>
+<td style="text-align:center">确定类型为T的对象是否满足约束。boolean test(T t);</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Consumer<t> 消费型接口</t></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">consume</span><span class="params">(<span class="keyword">double</span> money, Consumer&lt;Double&gt; con)</span></span>&#123;</div><div class="line">	con.accept(money);</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">	consume(<span class="number">10000</span>, (m) -&gt; &#123;</div><div class="line">    	System.out.println(<span class="string">"今日全场8折"</span>);</div><div class="line">        System.out.println(<span class="string">"顾客消费："</span> + (m * <span class="number">0.8</span>) + <span class="string">"元"</span>);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Supplier<t> 供给型接口</t></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//生成num个整数,并存入集合</span></div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;Integer&gt; <span class="title">getNumList</span><span class="params">(<span class="keyword">int</span> num, Supplier&lt;Integer&gt; sup)</span> </span>&#123;</div><div class="line">	List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; num; i++) &#123;</div><div class="line">			Integer n = sup.get();</div><div class="line">			list.add(n);</div><div class="line">		&#125;</div><div class="line">	<span class="keyword">return</span> list;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">	<span class="comment">//10个100以内的随机数</span></div><div class="line">	List&lt;Integer&gt; numList = getNumList(<span class="number">10</span>, () -&gt; (<span class="keyword">int</span>) (Math.random() * <span class="number">100</span>));</div><div class="line">  	<span class="keyword">for</span> (Integer num : numList) &#123;</div><div class="line">    	System.out.println(num);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Function<t, r=""> 函数型接口</t,></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">	Function接口常用于数据的处理转换,比如给定一个员工列表,需要返回名称列表</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> id;</div><div class="line">	<span class="keyword">private</span> String name;</div><div class="line"> 	<span class="keyword">private</span> <span class="keyword">double</span> salary;</div><div class="line">  	<span class="function"><span class="keyword">public</span> <span class="title">Employee</span><span class="params">(String name)</span></span>&#123;</div><div class="line">		<span class="keyword">this</span>.name = name;</div><div class="line">  	&#125;</div><div class="line">  	<span class="function"><span class="keyword">public</span> <span class="title">Employee</span><span class="params">(String name,<span class="keyword">double</span> salary)</span> </span>&#123;</div><div class="line">		<span class="keyword">this</span>.name = name;</div><div class="line">		<span class="keyword">this</span>.salary = salary;</div><div class="line">	&#125;</div><div class="line">  	<span class="comment">//省略getter setter</span></div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestEmp</span></span>&#123;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> <span class="keyword">static</span> &lt;T, R&gt;<span class="function">List&lt;R&gt; <span class="title">map</span><span class="params">(List&lt;T&gt; list,Function&lt;T, R&gt; fun)</span></span>&#123;</div><div class="line">    	List&lt;R&gt; returnList = <span class="keyword">new</span> ArrayList&lt;&gt;(list.size());</div><div class="line">    	<span class="keyword">for</span> (T e : list) &#123;</div><div class="line">			returnList.add(fun.apply(e));</div><div class="line">      	&#125;</div><div class="line">    	<span class="keyword">return</span> returnList</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		List&lt;Employee&gt; employees = Arrays.asList(<span class="keyword">new</span> Employee(<span class="string">"老张"</span>),</div><div class="line">				<span class="keyword">new</span> Employee(<span class="string">"小李"</span>),</div><div class="line">        		<span class="keyword">new</span> Employee(<span class="string">"老王"</span>),</div><div class="line">                <span class="keyword">new</span> Employee(<span class="string">"小刘"</span>),</div><div class="line">                <span class="keyword">new</span> Employee(<span class="string">"小胖"</span>));</div><div class="line">		List&lt;String&gt; nameList = map(employees, (employee -&gt; employee.getName()));</div><div class="line">		System.out.println(nameList);</div><div class="line">      	<span class="comment">/*</span></div><div class="line">      		console:[老张, 小李, 老王, 小刘, 小胖]</div><div class="line">      	*/</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Predicate<t> 断言型接口</t></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">filter</span><span class="params">(List&lt;E&gt; list, Predicate&lt;E&gt; pred)</span> </span>&#123;</div><div class="line">	List&lt;E&gt; retList = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    	<span class="keyword">for</span> (E e : list) &#123;</div><div class="line">        	<span class="keyword">if</span> (pred.test(e)) &#123;</div><div class="line">                retList.add(e);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">	<span class="keyword">return</span> retList;</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		List&lt;Employee&gt; employees = Arrays.asList(<span class="keyword">new</span> Employee(<span class="string">"老张"</span>),</div><div class="line">    			<span class="keyword">new</span> Employee(<span class="string">"小李"</span>, <span class="number">3000.00</span>),</div><div class="line">                <span class="keyword">new</span> Employee(<span class="string">"老王"</span>, <span class="number">5000.00</span>),</div><div class="line">                <span class="keyword">new</span> Employee(<span class="string">"小刘"</span>, <span class="number">7000.00</span>),</div><div class="line">                <span class="keyword">new</span> Employee(<span class="string">"小胖"</span>, <span class="number">10000.00</span>));</div><div class="line">  		<span class="comment">//过滤薪资小于5000的员工</span></div><div class="line">      	List&lt;Employee&gt; filter = filter(employees,</div><div class="line">                                       employee -&gt; employee.getSalary() &gt; <span class="number">5000.00</span>);</div><div class="line">        <span class="keyword">for</span> (Employee employee : filter) &#123;</div><div class="line">            System.out.println(employee.getName() + <span class="string">":"</span> + employee.getSalary());</div><div class="line">        &#125;</div><div class="line">      	<span class="comment">/*</span></div><div class="line">      		console:小刘:7000.0</div><div class="line">      				小胖:10000.0</div><div class="line">      	*/</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="方法引用"><a href="#方法引用" class="headerlink" title="方法引用"></a>方法引用</h3><p>​    当要传递给Lambda体的操作，已经有实现的方法了，可以使用方法引用！方法引用：使用操作符 <code>::</code>将方法名和对象或类的名字分隔开来。如下三种主要使用情况 ：</p>
+<p><strong>对象 : : 实例方法</strong></p>
+<p><strong>类 : : 静态方法</strong></p>
+<p><strong>类 : : 实例方法</strong></p>
+<p><strong>基本用法</strong></p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//静态方法</span></div><div class="line">BinaryOperator&lt;Double&gt; binaryOperator = (x, y) -&gt; Math.pow(x, y);</div><div class="line"><span class="comment">//等价于</span></div><div class="line">BinaryOperator&lt;Double&gt; binaryOperator = Math::pow;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//实例方法: 类::实例方法</span></div><div class="line">Function&lt;Employee, String&gt; f = (Employee e) -&gt; e.getName();</div><div class="line"><span class="comment">//等价于</span></div><div class="line">Function&lt;Employee, String&gt; f = Employee::getName;</div><div class="line"><span class="comment">//---------------------------------------------------------</span></div><div class="line"><span class="comment">//对象::实例方法</span></div><div class="line">Employee e = <span class="keyword">new</span> Employee(<span class="string">"小李"</span>, <span class="number">3000.00</span>);</div><div class="line">Supplier&lt;String&gt; s = () -&gt; e.getName();</div><div class="line"><span class="comment">//等价于↓</span></div><div class="line">Supplier&lt;String&gt; s = e::getName;</div></pre></td></tr></table></figure>
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><p>​    与函数式接口相结合，自动与函数式接口中方法兼容。可以把构造器引用赋值给定义的方法，与构造器参数<br>列表要与接口中抽象方法的参数列表一致！对于构造方法，方法引用的语法是&lt;类名&gt;::new，如<code>Employee::new</code>，如下语句：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Function&lt;String,Employee&gt; f = (name)-&gt;<span class="keyword">new</span> Employee(name);</div><div class="line"><span class="comment">//等价于↓</span></div><div class="line">Function&lt;String, Employee&gt; f = Employee::<span class="keyword">new</span>;</div></pre></td></tr></table></figure>
+<h3 id="接口中的默认方法和静态方法"><a href="#接口中的默认方法和静态方法" class="headerlink" title="接口中的默认方法和静态方法"></a>接口中的默认方法和静态方法</h3><p>​    Java8以前，接口里的方法要求全部是抽象方法，Java8以后允许在接口里定义<strong>默认方法</strong>和<strong>静态方法</strong>,默认方法使用 <strong>default</strong> 关键字修饰。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyFunction</span></span>&#123;</div><div class="line">  <span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">()</span></span>;</div><div class="line">  <span class="comment">//声明一个接口的默认方法</span></div><div class="line">  <span class="function"><span class="keyword">default</span> <span class="keyword">void</span> <span class="title">testDefalut</span><span class="params">()</span></span>&#123;</div><div class="line">    System.out.println(<span class="string">"MyFunction 默认方法"</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">//声明一个接口的静态方法</span></div><div class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testStatic</span><span class="params">()</span></span>&#123;</div><div class="line">    System.out.println(<span class="string">"MyFunction 静态方法"</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//MyFunctionImpl实现接口MyFunction</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyFunctionImpl</span> <span class="keyword">implements</span> <span class="title">MyFunction</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">func</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"实现抽象方法"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        MyFunction my = <span class="keyword">new</span> MyFunctionImpl();</div><div class="line">        my.func();</div><div class="line">        my.testDefalut();</div><div class="line">        MyFunction.testStatic();</div><div class="line">    &#125;</div><div class="line">  <span class="comment">/*</span></div><div class="line">      		实现抽象方法</div><div class="line">            MyFunction 默认方法</div><div class="line">            MyFunction 静态方法</div><div class="line">  */</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>默认方法的主要优势是提供一种拓展接口的方法，而不破坏现有代码。</strong></p>
+<h3 id="接口冲突"><a href="#接口冲突" class="headerlink" title="接口冲突"></a>接口冲突</h3><p>​    如果一个父接口提供一个默认方法，而另一个接口也提供了一个具有相同名称和参数列表的方法（不管方法是否是默认方法），那么必须覆盖该方法来解决冲突</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">AnotherFunction</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">void</span> <span class="title">testDefalut</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"AnotherFunction 默认方法"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FunctionImpl</span> <span class="keyword">implements</span> <span class="title">MyFunction</span>,<span class="title">AnotherFunction</span></span>&#123;</div><div class="line">  	<span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">func</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">" FunctionImpl 实现抽象方法"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  	<span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testDefalut</span><span class="params">()</span> </span>&#123;</div><div class="line">		 System.out.println(<span class="string">" FunctionImpl 覆盖接口中默认方法解决冲突"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>​    如果不覆盖接口中相同的默认方法，那么<code>new MyFunctionImpl().testDefalut();</code>中调用的testDefalut方法到底是哪个接口的testDefalut()方法呢？所以必须在实现类中覆盖testDefalut()方法。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>​    本章中介绍了Java 8中的函数式接口，Java8四大核心函数式接口，方法的引用，接口的默认方法和静态方法。</p>
+<p>下章将介绍Java8中强大的<strong>Stream API</strong></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;什么是函数式接口&quot;&gt;&lt;a href=&quot;#什么是函数式接口&quot; class=&quot;headerlink&quot; title=&quot;什么是函数式接口&quot;&gt;&lt;/a&gt;什么是函数式接口&lt;/h3&gt;&lt;p&gt;​    &lt;strong&gt;Java 8引入了函数式接口的概念&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;​    1). 只包含一个抽象方法的接口，称为&lt;strong&gt;函数式接口&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;​    2). 函数式接口可以被隐式转换为lambda表达式。&lt;/p&gt;
+&lt;p&gt;​    3). 在任意函数式接口上使用@FunctionalInterface注解，这样做可以检查它是否是一个函数式接口，同时javadoc 也会包含一条声明，说明这个接口是一个函数式接口。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Java" scheme="http://fireyao.me/categories/Java/"/>
+    
+    
+      <category term="Java" scheme="http://fireyao.me/tags/Java/"/>
+    
+      <category term="Java8" scheme="http://fireyao.me/tags/Java8/"/>
+    
+      <category term="函数式接口" scheme="http://fireyao.me/tags/%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Java8 新特性 Lambda表达式</title>
+    <link href="http://fireyao.me/2017/08/05/Java8-%E6%96%B0%E7%89%B9%E6%80%A7-Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/"/>
+    <id>http://fireyao.me/2017/08/05/Java8-新特性-Lambda表达式/</id>
+    <published>2017-08-05T05:18:27.000Z</published>
+    <updated>2017-08-21T01:24:50.072Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="什么是Lambda表达式"><a href="#什么是Lambda表达式" class="headerlink" title="什么是Lambda表达式"></a>什么是Lambda表达式</h3><p>  <strong>Lambda</strong>可以理解为是一个<strong>匿名函数</strong>，Lambda表达式可以说是一段可以传递的代码。可以写出更简洁、更灵活的代码。作为一种更紧凑的代码风格，使Java的语言表达能力得到了提升。</p>
+<p>  在Java8以前，我们是通过接口来传递代码的(面向接口的编程)。<br><a id="more"></a><br>  比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Runnable runnable = <span class="keyword">new</span> Runnable() &#123;</div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">               System.out.println(<span class="string">"run----"</span>);</div><div class="line">           &#125;</div><div class="line">       &#125;;</div><div class="line"></div><div class="line">Thread th = <span class="keyword">new</span> Thread(runnable);</div></pre></td></tr></table></figure>
+<p>这里Thread类需要的其实并不是Runnable对象，而是它的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>;</div></pre></td></tr></table></figure>
+<p>但是没有办法直接传递方法，只能通过接口来传递。</p>
+<p><strong>Java8</strong>提供了一种新的紧凑的传递代码的语法–就是<strong>Lambda</strong>表达式。比如刚才的Thread可以用lambda表达式修改为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Runnable runnable = (() -&gt; System.out.println(<span class="string">"run----"</span>));</div><div class="line">Thread th = <span class="keyword">new</span> Thread(runnable);</div><div class="line"><span class="comment">//还可以继续简化</span></div><div class="line">Thread t = <span class="keyword">new</span> Thread(() -&gt; System.out.println(<span class="string">"run----"</span>));</div></pre></td></tr></table></figure>
+<p>是不是简洁多了？。</p>
+<h4 id="1-Lambda表达式语法"><a href="#1-Lambda表达式语法" class="headerlink" title="1.Lambda表达式语法"></a>1.Lambda表达式语法</h4><p>Lambda 表达式在Java 语言中引入了一个新的语法元素和操作符。这个操作符为 <code>-&gt;</code> ， 该操作符被称为 Lambda 操作符或剪头操作符。它将 Lambda 分为两个部分：</p>
+<p><strong>左侧:</strong> 指定了 Lambda 表达式所需要的所有参数</p>
+<p><strong>右侧:</strong>指定了 Lambda 体，即 Lambda 表达式要执行的功能即需传递的方法的实现。</p>
+<p><strong>语法格式:</strong></p>
+<p><strong>1). 无参,无返回值,Lambda体只需一条语句</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Runnable runnable = (() -&gt; System.out.println(<span class="string">"run----"</span>));</div></pre></td></tr></table></figure>
+<p><strong>2). Lambda需要一个参数</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Consumer&lt;String&gt; consumer = ((str) -&gt; System.out.println(str));</div><div class="line"><span class="comment">//只有一个参数时，参数小括号可以省略，如下</span></div><div class="line">Consumer&lt;String&gt; consumer = (str -&gt; System.out.println(str));</div></pre></td></tr></table></figure>
+<p><strong>3). Lambda  需要两个参数，并且有返回值</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Comparator&lt;Integer&gt; comparator = ((num1, num2) -&gt; &#123;</div><div class="line">   <span class="keyword">return</span> num1 - num2;</div><div class="line">&#125;);</div><div class="line"><span class="comment">//当表达式内只有一条语句时，return和大括号可以省略，如下</span></div><div class="line">Comparator&lt;Integer&gt; comparator = ((num1, num2) -&gt; num1 - num2);</div></pre></td></tr></table></figure>
+<p><strong>4). 数据类型可以省略，因为可由编译器推断得出，称为“类型推断”</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">BinaryOperator&lt;Long&gt; binaryOperator = ((Long num1, Long num2) -&gt; num1 + num2);</div><div class="line"><span class="comment">//(Long l1, Long l2) 中参数类型可以省略，编译器可以自动推断，如下↓</span></div><div class="line">BinaryOperator&lt;Long&gt; binaryOperator = ((num1, num2) -&gt; num1 + num2);</div></pre></td></tr></table></figure>
+<p><strong>可以看出，相比匿名内部类，传递代码变得更为直观，不再有实现接口的模板代码，不再声明方法，也名字也没有，而是直接给出了方法的实现代码</strong></p>
+<h4 id="2-变量引用"><a href="#2-变量引用" class="headerlink" title="2.变量引用"></a><strong>2.变量引用</strong></h4><p>​    与匿名内部类类似，Lambda表达式也可以访问定义在主体代码外部的变量，但对于局部变量，它也只能访问final类型的变量，与匿名内部类的区别是，它不要求变量声明为final，但变量事实上不能被重新赋值。比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Integer num = <span class="number">1</span>;</div><div class="line">Function&lt;Integer, Integer&gt; function = (integer -&gt; num);</div></pre></td></tr></table></figure>
+<p>可以访问局部变量num，但num不能被重新赋值，如果这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Integer num = <span class="number">1</span>;</div><div class="line">Function&lt;Integer, Integer&gt; function = (integer -&gt; num++);</div><div class="line"><span class="comment">//编译器报错</span></div><div class="line"><span class="comment">//Variable used in lambda expression should be final or effectively final</span></div></pre></td></tr></table></figure>
+<h3 id="与匿名内部内比较"><a href="#与匿名内部内比较" class="headerlink" title="与匿名内部内比较"></a>与匿名内部内比较</h3><p>从以上内容可以看出，Lambda表达式与匿名内部类很像，主要就是简化了语法，使得编写更加简单，但Lambda与匿名内部类不同的是，java会为每个匿名内部类生成一个一个类，而Lambda表达式不会。</p>
+<p>Lambda表达式不是匿名内部类，那它的类型到底是什么呢？是<strong>函数式接口</strong>。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>​    本章介绍了Lambda表达式，Lambda语法以及在Lambda表达式中的变量引用。</p>
+<p>下篇将介绍Java8新特性，<strong>函数式接口</strong></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;什么是Lambda表达式&quot;&gt;&lt;a href=&quot;#什么是Lambda表达式&quot; class=&quot;headerlink&quot; title=&quot;什么是Lambda表达式&quot;&gt;&lt;/a&gt;什么是Lambda表达式&lt;/h3&gt;&lt;p&gt;  &lt;strong&gt;Lambda&lt;/strong&gt;可以理解为是一个&lt;strong&gt;匿名函数&lt;/strong&gt;，Lambda表达式可以说是一段可以传递的代码。可以写出更简洁、更灵活的代码。作为一种更紧凑的代码风格，使Java的语言表达能力得到了提升。&lt;/p&gt;
+&lt;p&gt;  在Java8以前，我们是通过接口来传递代码的(面向接口的编程)。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Java" scheme="http://fireyao.me/categories/Java/"/>
+    
+    
+      <category term="Java" scheme="http://fireyao.me/tags/Java/"/>
+    
+      <category term="Java8" scheme="http://fireyao.me/tags/Java8/"/>
+    
+      <category term="Lambda" scheme="http://fireyao.me/tags/Lambda/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="http://fireyao.me/2017/06/21/hello-world/"/>
+    <id>http://fireyao.me/2017/06/21/hello-world/</id>
+    <published>2017-06-21T05:18:27.000Z</published>
+    <updated>2017-08-21T01:24:50.091Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="进来你就是我的人了"><a href="#进来你就是我的人了" class="headerlink" title="进来你就是我的人了"></a>进来你就是我的人了</h3><p> <b>一颗赛艇</b><br> 苟利国家生死以<br> 岂因福祸趋避之<br><a id="more"></a></p>
+<h3 id="我跟你讲不要搞大新闻"><a href="#我跟你讲不要搞大新闻" class="headerlink" title="我跟你讲不要搞大新闻"></a>我跟你讲不要搞大新闻</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span>(alive)&#123;</div><div class="line">    your.minit = <span class="number">59</span>s;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你觉得你跑得快是不是</p>
+<h3 id="别往下看，没了"><a href="#别往下看，没了" class="headerlink" title="别往下看，没了"></a>别往下看，没了</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/(o_ _)ﾉ</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;进来你就是我的人了&quot;&gt;&lt;a href=&quot;#进来你就是我的人了&quot; class=&quot;headerlink&quot; title=&quot;进来你就是我的人了&quot;&gt;&lt;/a&gt;进来你就是我的人了&lt;/h3&gt;&lt;p&gt; &lt;b&gt;一颗赛艇&lt;/b&gt;&lt;br&gt; 苟利国家生死以&lt;br&gt; 岂因福祸趋避之&lt;br&gt;
+    
+    </summary>
+    
+      <category term="随笔" scheme="http://fireyao.me/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+      <category term="Hello" scheme="http://fireyao.me/tags/Hello/"/>
+    
+      <category term="膜法" scheme="http://fireyao.me/tags/%E8%86%9C%E6%B3%95/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hexo+github一步一步搭建个人博客</title>
+    <link href="http://fireyao.me/2017/06/21/hexo-github-blog/"/>
+    <id>http://fireyao.me/2017/06/21/hexo-github-blog/</id>
+    <published>2017-06-21T05:18:27.000Z</published>
+    <updated>2017-08-21T01:24:50.095Z</updated>
+    
+    <content type="html"><![CDATA[<p></p><p>最近用使用Hexo和github搭建了一个个人博客，现在记录下来;<br>Hexo是一个强大的博客框架,这里是<a href="https://hexo.io/zh-cn/docs/index.html" target="_blank" rel="external">中文文档</a></p><br>  <a id="more"></a><p></p>
+<h3 id="一、基础博客搭建流程"><a href="#一、基础博客搭建流程" class="headerlink" title="一、基础博客搭建流程"></a><strong>一、基础博客搭建流程</strong></h3><h4 id="安装Node和Git"><a href="#安装Node和Git" class="headerlink" title="安装Node和Git"></a>安装Node和Git</h4><ul>
+<li><p>windows：<br>下载Node.js客户端安装即可。<br>在命令行输入node -v出现如下图所示就安装成功了<br><img src="http://oqnan33k8.bkt.clouddn.com/myblog_img/hexo_github_blog/node.png" alt="Alt   text"></p>
+</li>
+<li><p>下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)<a href="https://github.com/waylau/git-for-win" target="_blank" rel="external">download</a><br>  安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。</p>
+</li>
+</ul>
+<h4 id="使用hexo搭建博客"><a href="#使用hexo搭建博客" class="headerlink" title="使用hexo搭建博客"></a>使用hexo搭建博客</h4><ul>
+<li><strong>安装全局hexo</strong><br>右键运行Git Bash 执行<code>npm install -g hexo</code>;安装后输入<code>hexo -v</code>,出现版本信息表示安装成功。</li>
+<li><strong>在项目中安装hexo</strong><br> 新建文件夹为你的博客项目名，进入项目打开Git Bash<br> <code>npm install hexo --save</code>在项目中安装hexo;<br> <code>hexo init</code>初始化hexo<br> <code>npm install</code>安装hexo所需依赖包</li>
+<li><strong>安装hexo插件</strong><br> <code>npm install hexo-server --save</code> 本地服务所需插件<br> <code>npm install hexo-deployer-git --save</code>使用git进行部署所需插件</li>
+</ul>
+<h4 id="在本地生成博客静态页面并预览"><a href="#在本地生成博客静态页面并预览" class="headerlink" title="在本地生成博客静态页面并预览"></a>在本地生成博客静态页面并预览</h4><p>在项目路径下打开Git Bash</p>
+<ul>
+<li><strong>在本地生成静态页面</strong><br>  <code>hexo generate</code>,生成一个存放静态文件的文件夹public;该命令可以简写为:<code>hexo g</code></li>
+</ul>
+<ul>
+<li><strong>启动本地服务器</strong><br><code>hexo server</code>,启动服务;简写为<code>hexo s</code>;<br>默认网址为：<code>http://localhost:4000/</code><br>默认端口为4000，如果端口被占用,执行<code>hexo s -p 5000</code>表示指定服务端口为5000。</li>
+</ul>
+<p>如果以上步骤都不出意外的话，你就会看到一个Hexo博客初始化的页面。</p>
+<h3 id="二、GitHub-hexo配置个人博客"><a href="#二、GitHub-hexo配置个人博客" class="headerlink" title="二、GitHub+hexo配置个人博客"></a><strong>二、GitHub+hexo配置个人博客</strong></h3><p> <strong>上面介绍了如何在本地搭建博客，接下来开始配置GitHub并关联Hexo</strong></p>
+<ul>
+<li><strong>GitHub pages</strong><ol>
+<li>首先注册一个GigHub帐号，注册比较简单就不再赘</li>
+<li>帐号创建号后，需要创建一个仓库(Respository);<strong>注意:</strong>仓库名字要与GitHub用户名一致,比如我的用户名是FireYao,创建的respository名就是FireYao.github.io</li>
+<li>创建好respository后，进入到该respository界面,点击settings拉到最下方找到GitHub Pages,点击 <strong>Launch automatic page generator</strong>,让GitHub生成GitHubPager</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li><strong>配置SSH Keys</strong><ol>
+<li>本地生成ssh密钥。<br>git bash下输入<code>ssh-keygen -t rsa -C ‘你的邮箱地址’</code></li>
+<li>上传本地的公钥串，使当前电脑与GitHub账户建立联系。</li>
+<li>在你的电脑C：\ Users\你的计算机用户名.ssh目录下打开刚刚生成的id_rsa.pub，复制里面的内容。然后点击你GitHub账户右上角的头像，选择settings，找到SSH and GPG keys，点击进入之后再点击New SSH key，title随便写，把公钥串粘贴到文本框，保存即可</li>
+</ol>
+</li>
+<li><p><strong>在Hexo配置文件中关联GitHub账号</strong></p>
+<ol>
+<li>在之前搭建好的本地博客项目中编辑<code>_config.yml</code>文件,把其中的deploy参数（没有的话就按如下格式新建，注意冒号后面一定要有一个空格），修改为：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">deploy:</div><div class="line">	type: git</div><div class="line">	repo: https://github.com/FireYao/FireYao.github.io.git</div><div class="line">	branch: master</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>将其中的FireYao改为你自己的github用户名</p>
+<ol>
+<li><p>重新部署项目<br>在博客根目录打开Git Bash依次执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hexo clean    #会清除缓存文件db.json及之前生成的静态文件夹public；</div><div class="line">hexo g     #会重新生成静态文件夹public；</div><div class="line">hexo deploy    #把本地生成的静态文件部署到FireYao.github.io这个仓库中的master分支上；简写形式为hexo d</div></pre></td></tr></table></figure>
+<p><code>hexo g 和 hexo d可以合并在一起写：hexo g -d</code></p>
+</li>
+<li>在浏览器中访问博客<br>在浏览器中输入<code>FireYao.github.io</code>,没毛病的话，你应该就能看到之前在本地搭建的那个博客页面了。</li>
+</ol>
+</li>
+</ul>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p></p><p><br>  到这里已经通过Hexo创建了一个最原始的博客，并将博客的静态文件存放到github仓库中，通过外网以github的默认域名访问这个博客。<br></p><br><strong>未完待续</strong><p></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;/p&gt;&lt;p&gt;最近用使用Hexo和github搭建了一个个人博客，现在记录下来;&lt;br&gt;Hexo是一个强大的博客框架,这里是&lt;a href=&quot;https://hexo.io/zh-cn/docs/index.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;中文文档&lt;/a&gt;&lt;/p&gt;&lt;br&gt;
+    
+    </summary>
+    
+      <category term="hexo" scheme="http://fireyao.me/categories/hexo/"/>
+    
+    
+      <category term="博客" scheme="http://fireyao.me/tags/%E5%8D%9A%E5%AE%A2/"/>
+    
+      <category term="hexo" scheme="http://fireyao.me/tags/hexo/"/>
+    
+      <category term="github" scheme="http://fireyao.me/tags/github/"/>
+    
+  </entry>
+  
+</feed>

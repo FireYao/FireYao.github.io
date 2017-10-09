@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[端口映射+nginx对外请求控制]]></title>
+    <url>%2F2017%2F10%2F09%2F%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84-nginx%E5%AF%B9%E5%A4%96%E8%AF%B7%E6%B1%82%E6%8E%A7%E5%88%B6%2F</url>
+    <content type="text"><![CDATA[​ 前几天接到个任务,要和另一家公司对接,具体就是我这开一个接口给对面调用.因为一开始在内网测试,那问题来了,怎么才能让对面访问到呢? ​ 当然是找运维大兄弟…..操作也很简单,就是用路由做一个端口映射,用公网ip做一个端口映射到我本机地址.这样外网就能访问到我的tomcat了. 比如说公网ip是192.168.1.0,我的ip是192.168.1.1,tomcat端口是8080. 那就在路由上配一个端口9876直接映射到本地tomcat 192.168.1.1:8080.那现在外网就可以通过http://192.168.1.0:9876/访问到本地http://192.168.1.1:8080/了. 就这样,做好了接口,问题又来了,因为这个接口是在核心系统里,那这样就会把所有的接口都暴露了,肯定不行.. 怎么做呢,怎么才能拦截这些请求呢? 当然又去问了运维大兄弟,再查了些资料,得知用Nginx可以只允许访问指定的url,其他的都直接对外禁止访问. 那怎么做呢? 重新修改下映射规则,不直接映射到tomcat,先经过nginx,通过nginx再把请求发送到tomcat. 这里就重新映射一个端口8000,在nginx中监听这个端口,然后再配置访问规则,再代理到tomcat 在nginx.config中添加一段server 12345678910111213141516171819202122232425262728server &#123; #监听8080端口,这个8080是路由映射到本机的端口 listen 8000; server_name 0.0.0.0; #charset koi8-r; #access_log logs/host.access.log main; location / &#123; #阻止所有请求,这里将永远输出403错误 deny all; &#125; #允许访问 /test/processe接口 location ~ /test/processe &#123; # 代理本地项目url proxy_pass http://192.168.4.48:8080; &#125; #如果还有其他接口,就再添加一个location #location ~ /test/processe1 &#123; #proxy_pass http://192.168.4.48:8080; #&#125; #location ~ /test/processe2 &#123; #proxy_pass http://192.168.4.48:8080; #&#125; error_page 500 502 503 504 /50x.html; location = /50x.html &#123; root html; &#125; &#125; 这里的流程就是,外网通过访问公网ip+给定的端口,在路由根据映射规则,再访问到我这台电脑,这个时候请求不是直接去访问本机的接口,而是进入了Nginx,在这里,会去检查请求的url是否与配置允许的地址相同,不同的话就会403 Forbidden错误啦,当uri是/test/processe时,就能访问实际代理的http://192.168.4.48:8080/test/processe接口了 那这样就可以让对面只能访问指定的接口.]]></content>
+      <categories>
+        <category>开发随记</category>
+      </categories>
+      <tags>
+        <tag>Nginx</tag>
+        <tag>开发随记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java8-新特性-Stream]]></title>
+    <url>%2F2017%2F08%2F20%2FJava8-%E6%96%B0%E7%89%B9%E6%80%A7-Stream%2F</url>
+    <content type="text"><![CDATA[了解Stream​ Java8中有两个最为重要的改变，一个是Lambda表达式，另一个就是Stream API,针对常见的集合数据处理，Stream API 提供了一种高效且易于使用的数据处理方式。 什么是Stream基本概念​ 流(Stream)用于操作数据源所生成的元素序列。Java 8给Collection接口增加了两个默认方法，它们可以返回一个Stream default Stream stream() {​ return StreamSupport.stream(spliterator(), false);}//stream()返回的是一个顺序流 default Stream parallelStream() {​ return StreamSupport.stream(spliterator(), true);}//parallelStream()返回的是一个并发流 Stream 自己不会存储元素。 Stream 不会改变源对象。相反，他们会返回一个持有结果的新Stream。 Stream 操作是延迟执行的。这意味着他们会等到需要结果的时候才执行。 基本示例首先这里有一个Employee类 1234567public class Employee &#123; private int id; private String name; private int age; private double salary; /*省略getter setter Constructor*/&#125; 12345678910//Employee列表List&lt;Employee&gt; emps = Arrays.asList( new Employee(102, "李四", 59, 6666.66), new Employee(101, "张三", 18, 9999.99), new Employee(103, "王五", 28, 3333.33), new Employee(104, "赵六", 20, 7777.77), new Employee(104, "赵六", 19, 7777.77), new Employee(104, "赵四", 40, 7777.77), new Employee(105, "田七", 38, 5555.55)); 返回薪资大于5000的员工列表,java8以前是这样做的 123456List&lt;Employee&gt; newEmps = new ArrayList&lt;&gt;();for(Employee emp : emps)&#123; if(emp.salary &gt; 5000.00)&#123; newEmps.add(emp); &#125;&#125; 使用Stream API ,代码可以这样 123List&lt;Employee&gt; newEmps = emps.stream() .filter(s -&gt; s.getSalary() &gt; 5000.00) .collect(Collectors.toList()); 先通过stream()得到一个Stream对象，然后调用Stream上的方法，filter()过滤得到薪资大于5000的,它的返回值依然是一个Stream,然后通过调用collect()方法并传递一个Collectors.toList()将结果集存放到一个List中. 使用Stream API处理集合类代码更加简洁易读. 下面介绍一下Stream中的两种操作 Stream的中间操作和终止操作中间操作: ​ 多个 中间操作可以连接起来形成一个 流水线，除非流水线上触发终止操作，否则 中间操作不会执行任何的 处理！而在 终止操作时一次性全部 处理，称为“惰性求值” 方法 描述 filter(Predicate p) 接收 Lambda ， 从流中排除某些元素。 distinct() 筛选，通过流所生成元素的 hashCode() 和 equals() 去 limit(long maxSize) 截断流，使其元素不超过给定数量。 map(Function f) 接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。 flatMap(Function f) 接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流 sorted(Comparator comp) 产生一个新流，其中按比较器顺序排序 sorted() 产生一个新流，其中按自然顺序排序 终止操作: ​ 终端操作会从流的流水线生成结果。其结果可以是任何不是流的值，例如：List、Integer，甚至是 void 。 方法 描述 forEach(Consumer c) 内部迭代 collect(Collector c) 将流转换为其他形式。接收一个 Collector接口的实现，用于给Stream中元素做汇总的方法 max(Comparator c) 返回流中最大值 min(Comparator c) 返回流中最小值 count() 返回流中元素总数 收集 : collect(Collector c)方法需要一个Collector 作为参数,Collector 接口中方法的实现决定了如何对流执行收集操作(如收集到 List、Set、Map)。Java8中提供了一个Collectors工具类, 工具中提供了很多静态方法，可以方便地创建常见收集器例 具体方法与实例如下表 方法 返回类型 作用 toList List 把流中元素收集到List toSet Set 把流中元素收集到Set toCollection Collection 把流中元素收集到创建的集合 groupingBy Map]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Java8</tag>
+        <tag>Stream</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java8 新特性 函数式接口]]></title>
+    <url>%2F2017%2F08%2F06%2FJava8-%E6%96%B0%E7%89%B9%E6%80%A7-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%2F</url>
+    <content type="text"><![CDATA[什么是函数式接口​ Java 8引入了函数式接口的概念 ​ 1). 只包含一个抽象方法的接口，称为函数式接口 ​ 2). 函数式接口可以被隐式转换为lambda表达式。 ​ 3). 在任意函数式接口上使用@FunctionalInterface注解，这样做可以检查它是否是一个函数式接口，同时javadoc 也会包含一条声明，说明这个接口是一个函数式接口。 预定义的函数式接口​ Java 8定义了大量的预定义函数式接口，用于常见类型的代码传递，这些函数定义在包java.util.function下， 其中有四大核心函数式接口。 函数式接口 参数类型 返回类型 用途 Consumer(消费型接口) T void 对类型为T的对象应用操作。void accept(T t) Supplier(供给型接口) 无 T 返回类型为T的对象。 T get(); Function(函数型接口) T R 对类型为T的对象应用操作并返回R类型的对象。R apply(T t); Predicate(断言型接口) T boolean 确定类型为T的对象是否满足约束。boolean test(T t); Consumer 消费型接口 123456789public static void consume(double money, Consumer&lt;Double&gt; con)&#123; con.accept(money);&#125;public static void main(String[] args) &#123; consume(10000, (m) -&gt; &#123; System.out.println("今日全场8折"); System.out.println("顾客消费：" + (m * 0.8) + "元"); &#125;);&#125; Supplier 供给型接口 1234567891011121314151617//生成num个整数,并存入集合public List&lt;Integer&gt; getNumList(int num, Supplier&lt;Integer&gt; sup) &#123; List&lt;Integer&gt; list = new ArrayList&lt;&gt;(); for (int i = 0; i &lt; num; i++) &#123; Integer n = sup.get(); list.add(n); &#125; return list;&#125;public static void main(String[] args) &#123; //10个100以内的随机数 List&lt;Integer&gt; numList = getNumList(10, () -&gt; (int) (Math.random() * 100)); for (Integer num : numList) &#123; System.out.println(num); &#125;&#125; Function 函数型接口 123456789101112131415161718192021222324252627282930313233343536373839/* Function接口常用于数据的处理转换,比如给定一个员工列表,需要返回名称列表*/public class Employee &#123; private int id; private String name; private double salary; public Employee(String name)&#123; this.name = name; &#125; public Employee(String name,double salary) &#123; this.name = name; this.salary = salary; &#125; //省略getter setter&#125;public class TestEmp&#123; public static &lt;T, R&gt;List&lt;R&gt; map(List&lt;T&gt; list,Function&lt;T, R&gt; fun)&#123; List&lt;R&gt; returnList = new ArrayList&lt;&gt;(list.size()); for (T e : list) &#123; returnList.add(fun.apply(e)); &#125; return returnList &#125; public static void main(String[] args) &#123; List&lt;Employee&gt; employees = Arrays.asList(new Employee("老张"), new Employee("小李"), new Employee("老王"), new Employee("小刘"), new Employee("小胖")); List&lt;String&gt; nameList = map(employees, (employee -&gt; employee.getName())); System.out.println(nameList); /* console:[老张, 小李, 老王, 小刘, 小胖] */ &#125;&#125; Predicate 断言型接口 1234567891011121314151617181920212223242526public static &lt;E&gt; List&lt;E&gt; filter(List&lt;E&gt; list, Predicate&lt;E&gt; pred) &#123; List&lt;E&gt; retList = new ArrayList&lt;&gt;(); for (E e : list) &#123; if (pred.test(e)) &#123; retList.add(e); &#125; &#125; return retList;&#125;public static void main(String[] args) &#123; List&lt;Employee&gt; employees = Arrays.asList(new Employee("老张"), new Employee("小李", 3000.00), new Employee("老王", 5000.00), new Employee("小刘", 7000.00), new Employee("小胖", 10000.00)); //过滤薪资小于5000的员工 List&lt;Employee&gt; filter = filter(employees, employee -&gt; employee.getSalary() &gt; 5000.00); for (Employee employee : filter) &#123; System.out.println(employee.getName() + ":" + employee.getSalary()); &#125; /* console:小刘:7000.0 小胖:10000.0 */&#125; 方法引用​ 当要传递给Lambda体的操作，已经有实现的方法了，可以使用方法引用！方法引用：使用操作符 ::将方法名和对象或类的名字分隔开来。如下三种主要使用情况 ： 对象 : : 实例方法 类 : : 静态方法 类 : : 实例方法 基本用法 例如： 1234//静态方法BinaryOperator&lt;Double&gt; binaryOperator = (x, y) -&gt; Math.pow(x, y);//等价于BinaryOperator&lt;Double&gt; binaryOperator = Math::pow; 12345678910//实例方法: 类::实例方法Function&lt;Employee, String&gt; f = (Employee e) -&gt; e.getName();//等价于Function&lt;Employee, String&gt; f = Employee::getName;//---------------------------------------------------------//对象::实例方法Employee e = new Employee("小李", 3000.00);Supplier&lt;String&gt; s = () -&gt; e.getName();//等价于↓Supplier&lt;String&gt; s = e::getName; 构造方法​ 与函数式接口相结合，自动与函数式接口中方法兼容。可以把构造器引用赋值给定义的方法，与构造器参数列表要与接口中抽象方法的参数列表一致！对于构造方法，方法引用的语法是&lt;类名&gt;::new，如Employee::new，如下语句： 123Function&lt;String,Employee&gt; f = (name)-&gt;new Employee(name);//等价于↓Function&lt;String, Employee&gt; f = Employee::new; 接口中的默认方法和静态方法​ Java8以前，接口里的方法要求全部是抽象方法，Java8以后允许在接口里定义默认方法和静态方法,默认方法使用 default 关键字修饰。 例如： 1234567891011public interface MyFunction&#123; void func(); //声明一个接口的默认方法 default void testDefalut()&#123; System.out.println("MyFunction 默认方法"); &#125; //声明一个接口的静态方法 static void testStatic()&#123; System.out.println("MyFunction 静态方法"); &#125;&#125; 12345678910111213141516171819//MyFunctionImpl实现接口MyFunctionpublic class MyFunctionImpl implements MyFunction &#123; @Override public void func() &#123; System.out.println("实现抽象方法"); &#125; public static void main(String[] args) &#123; MyFunction my = new MyFunctionImpl(); my.func(); my.testDefalut(); MyFunction.testStatic(); &#125; /* 实现抽象方法 MyFunction 默认方法 MyFunction 静态方法 */&#125; 默认方法的主要优势是提供一种拓展接口的方法，而不破坏现有代码。 接口冲突​ 如果一个父接口提供一个默认方法，而另一个接口也提供了一个具有相同名称和参数列表的方法（不管方法是否是默认方法），那么必须覆盖该方法来解决冲突 1234567891011121314151617public interface AnotherFunction &#123; default void testDefalut() &#123; System.out.println("AnotherFunction 默认方法"); &#125;&#125;public class FunctionImpl implements MyFunction,AnotherFunction&#123; @Override public void func() &#123; System.out.println(" FunctionImpl 实现抽象方法"); &#125; @Override public void testDefalut() &#123; System.out.println(" FunctionImpl 覆盖接口中默认方法解决冲突"); &#125;&#125; ​ 如果不覆盖接口中相同的默认方法，那么new MyFunctionImpl().testDefalut();中调用的testDefalut方法到底是哪个接口的testDefalut()方法呢？所以必须在实现类中覆盖testDefalut()方法。 小结​ 本章中介绍了Java 8中的函数式接口，Java8四大核心函数式接口，方法的引用，接口的默认方法和静态方法。 下章将介绍Java8中强大的Stream API]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Java8</tag>
+        <tag>函数式接口</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java8 新特性 Lambda表达式]]></title>
+    <url>%2F2017%2F08%2F05%2FJava8-%E6%96%B0%E7%89%B9%E6%80%A7-Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F%2F</url>
+    <content type="text"><![CDATA[什么是Lambda表达式 Lambda可以理解为是一个匿名函数，Lambda表达式可以说是一段可以传递的代码。可以写出更简洁、更灵活的代码。作为一种更紧凑的代码风格，使Java的语言表达能力得到了提升。 在Java8以前，我们是通过接口来传递代码的(面向接口的编程)。 比如： 12345678Runnable runnable = new Runnable() &#123; @Override public void run() &#123; System.out.println("run----"); &#125; &#125;;Thread th = new Thread(runnable); 这里Thread类需要的其实并不是Runnable对象，而是它的方法 1public abstract void run(); 但是没有办法直接传递方法，只能通过接口来传递。 Java8提供了一种新的紧凑的传递代码的语法–就是Lambda表达式。比如刚才的Thread可以用lambda表达式修改为： 1234Runnable runnable = (() -&gt; System.out.println("run----"));Thread th = new Thread(runnable);//还可以继续简化Thread t = new Thread(() -&gt; System.out.println("run----")); 是不是简洁多了？。 1.Lambda表达式语法Lambda 表达式在Java 语言中引入了一个新的语法元素和操作符。这个操作符为 -&gt; ， 该操作符被称为 Lambda 操作符或剪头操作符。它将 Lambda 分为两个部分： 左侧: 指定了 Lambda 表达式所需要的所有参数 右侧:指定了 Lambda 体，即 Lambda 表达式要执行的功能即需传递的方法的实现。 语法格式: 1). 无参,无返回值,Lambda体只需一条语句 1Runnable runnable = (() -&gt; System.out.println("run----")); 2). Lambda需要一个参数 123Consumer&lt;String&gt; consumer = ((str) -&gt; System.out.println(str));//只有一个参数时，参数小括号可以省略，如下Consumer&lt;String&gt; consumer = (str -&gt; System.out.println(str)); 3). Lambda 需要两个参数，并且有返回值 12345Comparator&lt;Integer&gt; comparator = ((num1, num2) -&gt; &#123; return num1 - num2;&#125;);//当表达式内只有一条语句时，return和大括号可以省略，如下Comparator&lt;Integer&gt; comparator = ((num1, num2) -&gt; num1 - num2); 4). 数据类型可以省略，因为可由编译器推断得出，称为“类型推断” 123BinaryOperator&lt;Long&gt; binaryOperator = ((Long num1, Long num2) -&gt; num1 + num2);//(Long l1, Long l2) 中参数类型可以省略，编译器可以自动推断，如下↓BinaryOperator&lt;Long&gt; binaryOperator = ((num1, num2) -&gt; num1 + num2); 可以看出，相比匿名内部类，传递代码变得更为直观，不再有实现接口的模板代码，不再声明方法，也名字也没有，而是直接给出了方法的实现代码 2.变量引用​ 与匿名内部类类似，Lambda表达式也可以访问定义在主体代码外部的变量，但对于局部变量，它也只能访问final类型的变量，与匿名内部类的区别是，它不要求变量声明为final，但变量事实上不能被重新赋值。比如： 12Integer num = 1;Function&lt;Integer, Integer&gt; function = (integer -&gt; num); 可以访问局部变量num，但num不能被重新赋值，如果这样写： 1234Integer num = 1;Function&lt;Integer, Integer&gt; function = (integer -&gt; num++);//编译器报错//Variable used in lambda expression should be final or effectively final 与匿名内部内比较从以上内容可以看出，Lambda表达式与匿名内部类很像，主要就是简化了语法，使得编写更加简单，但Lambda与匿名内部类不同的是，java会为每个匿名内部类生成一个一个类，而Lambda表达式不会。 Lambda表达式不是匿名内部类，那它的类型到底是什么呢？是函数式接口。 小结​ 本章介绍了Lambda表达式，Lambda语法以及在Lambda表达式中的变量引用。 下篇将介绍Java8新特性，函数式接口]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Java8</tag>
+        <tag>Lambda</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Hello World]]></title>
+    <url>%2F2017%2F06%2F21%2Fhello-world%2F</url>
+    <content type="text"><![CDATA[进来你就是我的人了 一颗赛艇 苟利国家生死以 岂因福祸趋避之 我跟你讲不要搞大新闻123while(alive)&#123; your.minit = 59s;&#125; 你觉得你跑得快是不是 别往下看，没了1/(o_ _)ﾉ]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>Hello</tag>
+        <tag>膜法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Hexo+github一步一步搭建个人博客]]></title>
+    <url>%2F2017%2F06%2F21%2Fhexo-github-blog%2F</url>
+    <content type="text"><![CDATA[最近用使用Hexo和github搭建了一个个人博客，现在记录下来;Hexo是一个强大的博客框架,这里是中文文档 一、基础博客搭建流程安装Node和Git windows：下载Node.js客户端安装即可。在命令行输入node -v出现如下图所示就安装成功了 下载git(国内直接从官网下载比较困难，需要翻墙。这里提供一个国内的下载站)download 安装正确后 在桌面或文件夹空白处鼠标右键菜单会新增“Git GUI Here”和“Git Bash Here”两个选项。 使用hexo搭建博客 安装全局hexo右键运行Git Bash 执行npm install -g hexo;安装后输入hexo -v,出现版本信息表示安装成功。 在项目中安装hexo 新建文件夹为你的博客项目名，进入项目打开Git Bash npm install hexo --save在项目中安装hexo; hexo init初始化hexo npm install安装hexo所需依赖包 安装hexo插件 npm install hexo-server --save 本地服务所需插件 npm install hexo-deployer-git --save使用git进行部署所需插件 在本地生成博客静态页面并预览在项目路径下打开Git Bash 在本地生成静态页面 hexo generate,生成一个存放静态文件的文件夹public;该命令可以简写为:hexo g 启动本地服务器hexo server,启动服务;简写为hexo s;默认网址为：http://localhost:4000/默认端口为4000，如果端口被占用,执行hexo s -p 5000表示指定服务端口为5000。 如果以上步骤都不出意外的话，你就会看到一个Hexo博客初始化的页面。 二、GitHub+hexo配置个人博客 上面介绍了如何在本地搭建博客，接下来开始配置GitHub并关联Hexo GitHub pages 首先注册一个GigHub帐号，注册比较简单就不再赘 帐号创建号后，需要创建一个仓库(Respository);注意:仓库名字要与GitHub用户名一致,比如我的用户名是FireYao,创建的respository名就是FireYao.github.io 创建好respository后，进入到该respository界面,点击settings拉到最下方找到GitHub Pages,点击 Launch automatic page generator,让GitHub生成GitHubPager 配置SSH Keys 本地生成ssh密钥。git bash下输入ssh-keygen -t rsa -C ‘你的邮箱地址’ 上传本地的公钥串，使当前电脑与GitHub账户建立联系。 在你的电脑C：\ Users\你的计算机用户名.ssh目录下打开刚刚生成的id_rsa.pub，复制里面的内容。然后点击你GitHub账户右上角的头像，选择settings，找到SSH and GPG keys，点击进入之后再点击New SSH key，title随便写，把公钥串粘贴到文本框，保存即可 在Hexo配置文件中关联GitHub账号 在之前搭建好的本地博客项目中编辑_config.yml文件,把其中的deploy参数（没有的话就按如下格式新建，注意冒号后面一定要有一个空格），修改为：1234deploy: type: git repo: https://github.com/FireYao/FireYao.github.io.git branch: master 将其中的FireYao改为你自己的github用户名 重新部署项目在博客根目录打开Git Bash依次执行 123hexo clean #会清除缓存文件db.json及之前生成的静态文件夹public；hexo g #会重新生成静态文件夹public；hexo deploy #把本地生成的静态文件部署到FireYao.github.io这个仓库中的master分支上；简写形式为hexo d hexo g 和 hexo d可以合并在一起写：hexo g -d 在浏览器中访问博客在浏览器中输入FireYao.github.io,没毛病的话，你应该就能看到之前在本地搭建的那个博客页面了。 小结 到这里已经通过Hexo创建了一个最原始的博客，并将博客的静态文件存放到github仓库中，通过外网以github的默认域名访问这个博客。未完待续]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>博客</tag>
+        <tag>hexo</tag>
+        <tag>github</tag>
+      </tags>
+  </entry>
+</search>
