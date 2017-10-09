@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://fireyao.me/"/>
-  <updated>2017-10-09T07:34:18.714Z</updated>
+  <updated>2017-10-09T08:43:06.658Z</updated>
   <id>http://fireyao.me/</id>
   
   <author>
@@ -14,6 +14,216 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Spring Data JPA 的使用</title>
+    <link href="http://fireyao.me/2017/10/09/spring-data-jpa-%E7%9A%84%E4%BD%BF%E7%94%A8/"/>
+    <id>http://fireyao.me/2017/10/09/spring-data-jpa-的使用/</id>
+    <published>2017-10-09T08:38:04.000Z</published>
+    <updated>2017-10-09T08:43:06.658Z</updated>
+    
+    <content type="html"><![CDATA[<p>上一篇Spring JavaConfig中配置数据源使用了JPA,这里就介绍一下Spring data jpa的常用方法.</p>
+<h3 id="spring-data-jpa介绍"><a href="#spring-data-jpa介绍" class="headerlink" title="spring data jpa介绍"></a>spring data jpa介绍</h3><h4 id="什么是JPA"><a href="#什么是JPA" class="headerlink" title="什么是JPA"></a>什么是JPA</h4><blockquote>
+<p>JPA(Java Persistence API)是Sun官方提出的Java持久化规范。它为Java开发人员提供了一种对象/关联映射工具来管理Java应用中的关系数据。</p>
+</blockquote>
+<p>Spring Data JPA 是 Spring 基于 ORM 框架、JPA 规范的基础上封装的一套JPA应用框架，可使开发者用极简的代码即可实现对数据的访问和操作。它提供了包括增删改查等在内的常用功能，且易于扩展！学习并使用 Spring Data JPA 可以极大提高开发效率！</p>
+<blockquote>
+<p>spring data jpa让我们解脱了DAO层的操作，基本上所有CRUD都可以依赖于它来实现</p>
+</blockquote>
+<p><strong>简单查询</strong></p>
+<blockquote>
+<p>基本查询也分为两种，一种是spring data默认已经实现，一种是根据查询的方法来自动解析成SQL。</p>
+<p>spring data jpa 默认预先生成了一些基本的CURD的方法，例如：增、删、改等等</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ItemRepository</span> <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">Item</span>, <span class="title">Integer</span>&gt;, <span class="title">JpaSpecificationExecutor</span>&lt;<span class="title">Item</span>&gt; </span>&#123;</div><div class="line"><span class="comment">//空的，可以什么都不用写</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<a id="more"></a>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test1</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    Item item = <span class="keyword">new</span> Item();</div><div class="line">    itemRepository.save(item);</div><div class="line">    List&lt;Item&gt; itemList = itemRepository.findAll();</div><div class="line">    Item one = itemRepository.findOne(<span class="number">1</span>);</div><div class="line">    itemRepository.delete(item);</div><div class="line">    <span class="keyword">long</span> count = itemRepository.count();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>自定义简单查询</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function">Item <span class="title">findByItemName</span><span class="params">(String itemName)</span></span>;</div><div class="line"></div><div class="line"><span class="function">List&lt;Item&gt; <span class="title">findByItemNameLike</span><span class="params">(String itemName)</span></span>;</div><div class="line"></div><div class="line"><span class="function">Long <span class="title">deleteByItemId</span><span class="params">(Integer id)</span></span>;</div><div class="line"></div><div class="line"><span class="function">List&lt;Item&gt; <span class="title">findByItemNameLikeOrderByItemNameDesc</span><span class="params">(String itemName)</span></span>;</div></pre></td></tr></table></figure>
+<p><strong>具体的关键字，使用方法和生产成SQL如下表所示</strong></p>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Sample</th>
+<th>JPQL snippet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>And</td>
+<td>findByLastnameAndFirstname</td>
+<td>… where x.lastname = ?1 and x.firstname = ?2</td>
+</tr>
+<tr>
+<td>Or</td>
+<td>findByLastnameOrFirstname</td>
+<td>… where x.lastname = ?1 or x.firstname = ?2</td>
+</tr>
+<tr>
+<td>Is,Equals</td>
+<td>findByFirstnameIs,findByFirstnameEquals</td>
+<td>… where x.firstname = ?1</td>
+</tr>
+<tr>
+<td>Between</td>
+<td>findByStartDateBetween</td>
+<td>… where x.startDate between ?1 and ?2</td>
+</tr>
+<tr>
+<td>LessThan</td>
+<td>findByAgeLessThan</td>
+<td>… where x.age &lt; ?1</td>
+</tr>
+<tr>
+<td>LessThanEqual</td>
+<td>findByAgeLessThanEqual</td>
+<td>… where x.age ⇐ ?1</td>
+</tr>
+<tr>
+<td>GreaterThan</td>
+<td>findByAgeGreaterThan</td>
+<td>… where x.age &gt; ?1</td>
+</tr>
+<tr>
+<td>GreaterThanEqual</td>
+<td>findByAgeGreaterThanEqual</td>
+<td>… where x.age &gt;= ?1</td>
+</tr>
+<tr>
+<td>After</td>
+<td>findByStartDateAfter</td>
+<td>… where x.startDate &gt; ?1</td>
+</tr>
+<tr>
+<td>Before</td>
+<td>findByStartDateBefore</td>
+<td>… where x.startDate &lt; ?1</td>
+</tr>
+<tr>
+<td>IsNull</td>
+<td>findByAgeIsNull</td>
+<td>… where x.age is null</td>
+</tr>
+<tr>
+<td>IsNotNull,NotNull</td>
+<td>findByAge(Is)NotNull</td>
+<td>… where x.age not null</td>
+</tr>
+<tr>
+<td>Like</td>
+<td>findByFirstnameLike</td>
+<td>… where x.firstname like ?1</td>
+</tr>
+<tr>
+<td>NotLike</td>
+<td>findByFirstnameNotLike</td>
+<td>… where x.firstname not like ?1</td>
+</tr>
+<tr>
+<td>StartingWith</td>
+<td>findByFirstnameStartingWith</td>
+<td>… where x.firstname like ?1 (parameter bound with appended %)</td>
+</tr>
+<tr>
+<td>EndingWith</td>
+<td>findByFirstnameEndingWith</td>
+<td>… where x.firstname like ?1 (parameter bound with prepended %)</td>
+</tr>
+<tr>
+<td>Containing</td>
+<td>findByFirstnameContaining</td>
+<td>… where x.firstname like ?1 (parameter bound wrapped in %)</td>
+</tr>
+<tr>
+<td>OrderBy</td>
+<td>findByAgeOrderByLastnameDesc</td>
+<td>… where x.age = ?1 order by x.lastname desc</td>
+</tr>
+<tr>
+<td>Not</td>
+<td>findByLastnameNot</td>
+<td>… where x.lastname &lt;&gt; ?1</td>
+</tr>
+<tr>
+<td>In</td>
+<td>findByAgeIn(Collection ages)</td>
+<td>… where x.age in ?1</td>
+</tr>
+<tr>
+<td>NotIn</td>
+<td>findByAgeNotIn(Collection age)</td>
+<td>… where x.age not in ?1</td>
+</tr>
+<tr>
+<td>TRUE</td>
+<td>findByActiveTrue()</td>
+<td>… where x.active = true</td>
+</tr>
+<tr>
+<td>FALSE</td>
+<td>findByActiveFalse()</td>
+<td>… where x.active = false</td>
+</tr>
+<tr>
+<td>IgnoreCase</td>
+<td>findByFirstnameIgnoreCase</td>
+<td>… where UPPER(x.firstame) = UPPER(?1)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分页查询</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">Page&lt;Item&gt; <span class="title">findALL</span><span class="params">(Pageable pageable)</span></span>;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test1</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    <span class="keyword">int</span> page=<span class="number">1</span>,size=<span class="number">10</span>;</div><div class="line">    Sort sort = <span class="keyword">new</span> Sort(Sort.Direction.DESC, <span class="string">"id"</span>);<span class="comment">//根据id降序排序</span></div><div class="line">    Pageable pageable = <span class="keyword">new</span> PageRequest(page, size, sort);</div><div class="line">    Page&lt;Item&gt; pageResult = itemRepository.findALL(pageable);</div><div class="line">    List&lt;Item&gt; itemList = pageResult.getContent();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>自定义SQL查询</strong></p>
+<blockquote>
+<p>在SQL的查询方法上面使用<code>@Query</code>注解，如涉及到删除和修改在需要加上<code>@Modifying</code>.也可以根据需要添加 <code>@Transactional</code> 对事物的支持</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//自定分页查询 一条查询数据,一条查询数据量</span></div><div class="line"><span class="meta">@Query</span>(value = <span class="string">"select i from Item i"</span>,</div><div class="line">        countQuery = <span class="string">"select count(i.itemId) from Item i"</span>)</div><div class="line"><span class="function">Page&lt;Item&gt; <span class="title">findall</span><span class="params">(Pageable pageable)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">//nativeQuery = true 本地查询  就是使用原生SQL查询</span></div><div class="line"><span class="meta">@Query</span>(value = <span class="string">"select * from item  where item_id = ?1"</span>, nativeQuery = <span class="keyword">true</span>)</div><div class="line"><span class="function">Item <span class="title">findAllItemById</span><span class="params">(<span class="keyword">int</span> id)</span></span>;</div><div class="line"></div><div class="line"><span class="meta">@Transactional</span></div><div class="line"><span class="meta">@Modifying</span></div><div class="line"><span class="meta">@Query</span>(<span class="string">"delete from Item i where i.itemId = :itemId"</span>)</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">deleteInBulkByItemId</span><span class="params">(@Param(value = <span class="string">"itemId"</span>)</span> Integer itemId)</span>;</div><div class="line"></div><div class="line"><span class="comment">//#&#123;#entityName&#125;就是指定的@Entity,这里就是Item</span></div><div class="line"> <span class="meta">@Query</span>(<span class="string">"select i from #&#123;#entityName&#125; i where i.itemId = ?1"</span>)</div><div class="line"> <span class="function">Item <span class="title">findById</span><span class="params">(Integer id)</span></span>;</div></pre></td></tr></table></figure>
+<p><strong>命名查询</strong></p>
+<blockquote>
+<p>在实体类上使用@NameQueries注解</p>
+<p>在自己实现的DAO的Repository接口里面定义一个同名的方法</p>
+<p>然后就可以使用了，Spring会先找是否有同名的NamedQuery，如果有，那么就不会按照接口定义的方法来解析。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//命名查询</span></div><div class="line"><span class="meta">@NamedQueries</span>(&#123;</div><div class="line">        <span class="meta">@NamedQuery</span>(name = <span class="string">"Item.findItemByitemPrice"</span>,</div><div class="line">                query = <span class="string">"select i from Item i where i.itemPrice between ?1 and ?2"</span>),</div><div class="line">        <span class="meta">@NamedQuery</span>(name = <span class="string">"Item.findItemByitemStock"</span>,</div><div class="line">                query = <span class="string">"select i from Item i where i.itemStock between ?1 and ?2"</span>),</div><div class="line">&#125;)</div><div class="line"><span class="meta">@Entity</span></div><div class="line"><span class="meta">@Data</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Item</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">    <span class="meta">@Id</span></div><div class="line">    <span class="meta">@GeneratedValue</span></div><div class="line">    <span class="meta">@Column</span>(name = <span class="string">"item_id"</span>)</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> itemId;</div><div class="line">    <span class="keyword">private</span> String itemName;</div><div class="line">    <span class="keyword">private</span> Integer itemPrice;</div><div class="line">    <span class="keyword">private</span> Integer itemStock;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 这里是在domain实体类里<span class="doctag">@NamedQuery</span>写对应的HQL</div><div class="line"> * <span class="doctag">@NamedQuery</span>(name = "Item.findItemByitemPrice",</div><div class="line">               baseQuery = "select i from Item i where i.itemPrice between ?1 and ?2"),</div><div class="line"> * <span class="doctag">@param</span> price1</div><div class="line"> * <span class="doctag">@param</span> price2</div><div class="line"> * <span class="doctag">@return</span></div><div class="line"> */</div><div class="line"><span class="function">List&lt;Item&gt; <span class="title">findItemByitemPrice</span><span class="params">(Integer price1, Integer price2)</span></span>;</div><div class="line"><span class="function">List&lt;Item&gt; <span class="title">findItemByitemStock</span><span class="params">(Integer stock1, Integer stock2)</span></span>;</div></pre></td></tr></table></figure>
+<p>那么spring data jpa是怎么通过这些规范来进行组装成查询语句呢?</p>
+<h4 id="Spring-Data-JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如-find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。"><a href="#Spring-Data-JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如-find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。" class="headerlink" title="Spring Data JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如 find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。"></a>Spring Data JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如 find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。</h4><h5 id="假如创建如下的查询：findByUserDepUuid-，框架在解析该方法时，首先剔除-findBy，然后对剩下的属性进行解析"><a href="#假如创建如下的查询：findByUserDepUuid-，框架在解析该方法时，首先剔除-findBy，然后对剩下的属性进行解析" class="headerlink" title="假如创建如下的查询：findByUserDepUuid()，框架在解析该方法时，首先剔除 findBy，然后对剩下的属性进行解析"></a><strong>假如创建如下的查询：<code>findByUserDepUuid()</code>，框架在解析该方法时，首先剔除 findBy，然后对剩下的属性进行解析</strong></h5><ol>
+<li>先判断 userDepUuid （根据 POJO 规范，首字母变为小写）是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，继续第二步；</li>
+<li>从右往左截取第一个大写字母开头的字符串此处为Uuid），然后检查剩下的字符串是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，则重复第二步，继续从右往左截取；最后假设user为查询实体的一个属性；</li>
+<li>接着处理剩下部分（DepUuid），先判断 user 所对应的类型是否有depUuid属性，如果有，则表示该方法最终是根据 <code>Doc.user.depUuid</code> 的取值进行查询；否则继续按照步骤 2 的规则从右往左截取，最终表示根据 <code>Doc.user.dep.uuid</code> 的值进行查询。</li>
+<li>可能会存在一种特殊情况，比如 Doc包含一个 user 的属性，也有一个 userDep 属性，此时会存在混淆。可以明确在属性之间加上 “_” 以显式表达意图，比如 <code>findByUser_DepUuid()</code> 或者 <code>findByUserDep_uuid()</code></li>
+</ol>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;上一篇Spring JavaConfig中配置数据源使用了JPA,这里就介绍一下Spring data jpa的常用方法.&lt;/p&gt;
+&lt;h3 id=&quot;spring-data-jpa介绍&quot;&gt;&lt;a href=&quot;#spring-data-jpa介绍&quot; class=&quot;headerlink&quot; title=&quot;spring data jpa介绍&quot;&gt;&lt;/a&gt;spring data jpa介绍&lt;/h3&gt;&lt;h4 id=&quot;什么是JPA&quot;&gt;&lt;a href=&quot;#什么是JPA&quot; class=&quot;headerlink&quot; title=&quot;什么是JPA&quot;&gt;&lt;/a&gt;什么是JPA&lt;/h4&gt;&lt;blockquote&gt;
+&lt;p&gt;JPA(Java Persistence API)是Sun官方提出的Java持久化规范。它为Java开发人员提供了一种对象/关联映射工具来管理Java应用中的关系数据。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Spring Data JPA 是 Spring 基于 ORM 框架、JPA 规范的基础上封装的一套JPA应用框架，可使开发者用极简的代码即可实现对数据的访问和操作。它提供了包括增删改查等在内的常用功能，且易于扩展！学习并使用 Spring Data JPA 可以极大提高开发效率！&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;spring data jpa让我们解脱了DAO层的操作，基本上所有CRUD都可以依赖于它来实现&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;简单查询&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基本查询也分为两种，一种是spring data默认已经实现，一种是根据查询的方法来自动解析成SQL。&lt;/p&gt;
+&lt;p&gt;spring data jpa 默认预先生成了一些基本的CURD的方法，例如：增、删、改等等&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;ItemRepository&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;JpaRepository&lt;/span&gt;&amp;lt;&lt;span class=&quot;title&quot;&gt;Item&lt;/span&gt;, &lt;span class=&quot;title&quot;&gt;Integer&lt;/span&gt;&amp;gt;, &lt;span class=&quot;title&quot;&gt;JpaSpecificationExecutor&lt;/span&gt;&amp;lt;&lt;span class=&quot;title&quot;&gt;Item&lt;/span&gt;&amp;gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;//空的，可以什么都不用写&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+    
+    </summary>
+    
+      <category term="spring" scheme="http://fireyao.me/categories/spring/"/>
+    
+    
+      <category term="spring" scheme="http://fireyao.me/tags/spring/"/>
+    
+      <category term="jpa" scheme="http://fireyao.me/tags/jpa/"/>
+    
+  </entry>
   
   <entry>
     <title>丢掉xml使用JavaConfig配置Spring</title>
