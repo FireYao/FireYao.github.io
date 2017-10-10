@@ -76,7 +76,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="spring,jpa," />
 
 
 
@@ -94,15 +94,17 @@
 
 
 
-<meta name="description" content="java coder">
-<meta property="og:type" content="website">
-<meta property="og:title" content="火尧">
-<meta property="og:url" content="http://fireyao.me/tags/开发随记/index.html">
+<meta name="description" content="Spring Data JPA虽然大大的简化了持久层的开发,但是在实际开发中,很多地方都需要高级动态查询 Criteria API  Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。 CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、w">
+<meta name="keywords" content="spring,jpa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring-Data-JPA criteria 查询">
+<meta property="og:url" content="http://fireyao.me/2017/10/10/Spring-Data-JPA-criteria-查询/index.html">
 <meta property="og:site_name" content="火尧">
-<meta property="og:description" content="java coder">
+<meta property="og:description" content="Spring Data JPA虽然大大的简化了持久层的开发,但是在实际开发中,很多地方都需要高级动态查询 Criteria API  Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。 CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、w">
+<meta property="og:updated_time" content="2017-10-10T05:08:26.041Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="火尧">
-<meta name="twitter:description" content="java coder">
+<meta name="twitter:title" content="Spring-Data-JPA criteria 查询">
+<meta name="twitter:description" content="Spring Data JPA虽然大大的简化了持久层的开发,但是在实际开发中,很多地方都需要高级动态查询 Criteria API  Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。 CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、w">
 
 
 
@@ -131,13 +133,13 @@
 
 
 
-  <link rel="canonical" href="http://fireyao.me/tags/开发随记/"/>
+  <link rel="canonical" href="http://fireyao.me/2017/10/10/Spring-Data-JPA-criteria-查询/"/>
 
 
 
 
 
-  <title>标签: 开发随记 | 火尧</title>
+  <title>Spring-Data-JPA criteria 查询 | 火尧</title>
   
 
 
@@ -172,7 +174,7 @@
     
   
 
-  <div class="container sidebar-position-left  ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -472,54 +474,239 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>开发随记<small>标签</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://fireyao.me/2017/10/10/Spring-Data-JPA-criteria-查询/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="FireYao">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="火尧">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2017/10/09/端口映射-nginx对外请求控制/" itemprop="url">
-              
-                <span itemprop="name">端口映射+nginx对外请求控制</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">Spring-Data-JPA criteria 查询</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2017-10-09T13:59:27+08:00"
-              content="2017-10-09" >
-          10-09
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-10T12:54:47+08:00">
+                2017-10-10
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index">
+                    <span itemprop="name">spring</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/10/10/Spring-Data-JPA-criteria-查询/" class="leancloud_visitors" data-flag-title="Spring-Data-JPA criteria 查询">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Spring Data JPA虽然大大的简化了持久层的开发,但是在实际开发中,很多地方都需要高级动态查询</p>
+<p><strong>Criteria API</strong></p>
+<blockquote>
+<p>Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。</p>
+<p>CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、where、group by、order by等注意：CriteriaQuery对象只对实体类型或嵌入式类型的Criteria查询起作用</p>
+<p> Root接口：代表Criteria查询的根对象，Criteria查询的查询根定义了实体类型，能为将来导航获得想要的结果，它与SQL查询中的FROM子句类似</p>
+<p>​    1：Root实例是类型化的，且定义了查询的FROM子句中能够出现的类型。</p>
+<p>​    2：查询根实例能通过传入一个实体类型给 AbstractQuery.from方法获得。</p>
+<p>​    3：Criteria查询，可以有多个查询根。</p>
+<p>​    4：AbstractQuery是CriteriaQuery 接口的父类，它提供得到查询根的方法。CriteriaBuilder接口：用来构建CritiaQuery的构建器对象Predicate：一个简单或复杂的谓词类型，其实就相当于条件或者是条件组合</p>
+<p>如果编译器能够对查询执行语法正确性检查，那么对于 Java 对象而言该查询就是类型安全的。Java™Persistence API (JPA) 的 2.0 版本引入了 Criteria API，这个 API 首次将类型安全查询引入到 Java 应用程序中，并为在运行时动态地构造查询提供一种机制。</p>
+</blockquote>
+<p><strong>JPA元模型</strong></p>
+<blockquote>
+<p>在JPA中,标准查询是以元模型的概念为基础的.元模型是为具体持久化单元的受管实体定义的.这些实体可以是实体类,嵌入类或者映射的父类.提供受管实体元信息的类就是元模型类.</p>
+<p>使用元模型类最大的优势是凭借其实例化可以在编译时访问实体的持久属性.该特性使得criteria 查询更加类型安全.</p>
+</blockquote>
+<a id="more"></a>
+<p>如下,<code>Item</code>实体类对应的元模型<code>Item_</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Generated</span>(value = <span class="string">"org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor"</span>)</div><div class="line"><span class="meta">@StaticMetamodel</span>(Item.class)</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Item_</span> </span>&#123;</div><div class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">volatile</span> SingularAttribute&lt;Item, Integer&gt; itemId;</div><div class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">volatile</span> SingularAttribute&lt;Item, String&gt; itemName;</div><div class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">volatile</span> SingularAttribute&lt;Item, Integer&gt; itemStock;</div><div class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">volatile</span> SingularAttribute&lt;Item, Integer&gt; itemPrice;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样的元模型不用手动创建,在Maven中添加插件,编译之后@Entity注解的类就会自动生成对应的元模型</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--hibernate JPA 自动生成元模型--&gt;</span></div><div class="line"><span class="comment">&lt;!-- 相关依赖 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hibernate<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hibernate-jpamodelgen<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.2.10.Final<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>compile<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hibernate<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hibernate-validator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.1.0.Final<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">       <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></div><div class="line">             <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line">              <span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">                 <span class="tag">&lt;<span class="name">processor</span>&gt;</span>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor<span class="tag">&lt;/<span class="name">processor</span>&gt;</span></div><div class="line">              <span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">     	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"> <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
+<p><strong>使用criteria 查询简单Demo</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Service</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ItemServiceImpl</span> <span class="keyword">implements</span> <span class="title">ItemService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Resource</span></div><div class="line">    <span class="keyword">private</span> EntityManager entityManager;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> List&lt;Item&gt; <span class="title">findByConditions</span><span class="params">(String name, Integer price, Integer stock)</span> </span>&#123;</div><div class="line">      	<span class="comment">//创建CriteriaBuilder安全查询工厂</span></div><div class="line">        <span class="comment">//CriteriaBuilder是一个工厂对象,安全查询的开始.用于构建JPA安全查询.</span></div><div class="line">        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();</div><div class="line">        <span class="comment">//创建CriteriaQuery安全查询主语句</span></div><div class="line">        <span class="comment">//CriteriaQuery对象必须在实体类型或嵌入式类型上的Criteria 查询上起作用。</span></div><div class="line">        CriteriaQuery&lt;Item&gt; query = criteriaBuilder.createQuery(Item.class);</div><div class="line">        <span class="comment">//Root 定义查询的From子句中能出现的类型</span></div><div class="line">        Root&lt;Item&gt; itemRoot = query.from(Item.class);</div><div class="line">      	<span class="comment">//Predicate 过滤条件 构建where字句可能的各种条件</span></div><div class="line">      	<span class="comment">//这里用List存放多种查询条件,实现动态查询</span></div><div class="line">        List&lt;Predicate&gt; predicatesList = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">      	<span class="comment">//name模糊查询 ,like语句</span></div><div class="line">		<span class="keyword">if</span> (name != <span class="keyword">null</span>) &#123;</div><div class="line">            predicatesList.add(</div><div class="line">                    criteriaBuilder.and(</div><div class="line">                            criteriaBuilder.like(</div><div class="line">                                    itemRoot.get(Item_.itemName), <span class="string">"%"</span> + name + <span class="string">"%"</span>)));</div><div class="line">        &#125;</div><div class="line">     	<span class="comment">// itemPrice 小于等于 &lt;= 语句</span></div><div class="line">        <span class="keyword">if</span> (price != <span class="keyword">null</span>) &#123;</div><div class="line">            predicatesList.add(</div><div class="line">                    criteriaBuilder.and(</div><div class="line">                            criteriaBuilder.le(</div><div class="line">                                    itemRoot.get(Item_.itemPrice), price)));</div><div class="line">        &#125;</div><div class="line">        <span class="comment">//itemStock 大于等于 &gt;= 语句</span></div><div class="line">        <span class="keyword">if</span> (stock != <span class="keyword">null</span>) &#123;</div><div class="line">            predicatesList.add(</div><div class="line">                    criteriaBuilder.and(</div><div class="line">                            criteriaBuilder.ge(</div><div class="line">                                    itemRoot.get(Item_.itemStock), stock)));</div><div class="line">        &#125;</div><div class="line">      	<span class="comment">//where()拼接查询条件</span></div><div class="line">        query.where(predicatesList.toArray(<span class="keyword">new</span> Predicate[predicatesList.size()]));</div><div class="line">        TypedQuery&lt;Item&gt; typedQuery = entityManager.createQuery(query);</div><div class="line">        List&lt;Item&gt; resultList = typedQuery.getResultList();</div><div class="line">        <span class="keyword">return</span> resultList;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>criteriaBuilder中各方法对应的语句</strong></p>
+<blockquote>
+<p>equle : filed = value</p>
+<p>gt / greaterThan : filed &gt; value</p>
+<p>lt / lessThan : filed &lt; value</p>
+<p>ge / greaterThanOrEqualTo : filed &gt;= value</p>
+<p>le / lessThanOrEqualTo: filed &lt;= value</p>
+<p>notEqule : filed != value</p>
+<p>like : filed like value</p>
+<p>notLike : filed not like value</p>
+</blockquote>
+<p>如果每个动态查询的地方都这么写,那就感觉太麻烦了.</p>
+<p><strong>那实际上,在使用Spring Data JPA的时候，只要我们的Repo层接口继承JpaSpecificationExecutor接口就可以使用Specification进行动态查询了，我们先看下JpaSpecificationExecutor接口：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">JpaSpecificationExecutor</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="function">T <span class="title">findOne</span><span class="params">(Specification&lt;T&gt; var1)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">List&lt;T&gt; <span class="title">findAll</span><span class="params">(Specification&lt;T&gt; var1)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">Page&lt;T&gt; <span class="title">findAll</span><span class="params">(Specification&lt;T&gt; var1, Pageable var2)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">List&lt;T&gt; <span class="title">findAll</span><span class="params">(Specification&lt;T&gt; var1, Sort var2)</span></span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">long</span> <span class="title">count</span><span class="params">(Specification&lt;T&gt; var1)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在这里有个很重要的接口<code>Specification</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Specification</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="function">Predicate <span class="title">toPredicate</span><span class="params">(Root&lt;T&gt; var1, CriteriaQuery&lt;?&gt; var2, CriteriaBuilder var3)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个接口只有一个方法,返回动态查询的数据结构,用于构造各种动态查询的SQL</p>
+<p><strong>Specification接口示例</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Page&lt;Item&gt; <span class="title">findByConditions</span><span class="params">(String name, Integer price, Integer stock, Pageable page)</span> </span>&#123;</div><div class="line">     Page&lt;Item&gt; page = itemRepository.findAll((root, criteriaQuery, criteriaBuilder) -&gt; &#123;</div><div class="line">            List&lt;Predicate&gt; predicatesList = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">            <span class="comment">//name模糊查询 ,like语句</span></div><div class="line">            <span class="keyword">if</span> (name != <span class="keyword">null</span>) &#123;</div><div class="line">                predicatesList.add(</div><div class="line">                        criteriaBuilder.and(</div><div class="line">                                criteriaBuilder.like(</div><div class="line">                                        root.get(Item_.itemName), <span class="string">"%"</span> + name + <span class="string">"%"</span>)));</div><div class="line">            &#125;</div><div class="line">            <span class="comment">// itemPrice 小于等于 &lt;= 语句</span></div><div class="line">            <span class="keyword">if</span> (price != <span class="keyword">null</span>) &#123;</div><div class="line">                predicatesList.add(</div><div class="line">                        criteriaBuilder.and(</div><div class="line">                                criteriaBuilder.le(</div><div class="line">                                        root.get(Item_.itemPrice), price)));</div><div class="line">            &#125;</div><div class="line">            <span class="comment">//itemStock 大于等于 &gt;= 语句</span></div><div class="line">            <span class="keyword">if</span> (stock != <span class="keyword">null</span>) &#123;</div><div class="line">                predicatesList.add(</div><div class="line">                        criteriaBuilder.and(</div><div class="line">                                criteriaBuilder.ge(</div><div class="line">                                        root.get(Item_.itemStock), stock)));</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> criteriaBuilder.and(</div><div class="line">                    predicatesList.toArray(<span class="keyword">new</span> Predicate[predicatesList.size()]));</div><div class="line">        &#125;, page);</div><div class="line">    <span class="keyword">return</span> page;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>在这里因为<code>findAll(Specification&lt;T&gt; var1, Pageable var2)</code>方法中参数 <code>Specification&lt;T&gt;</code> 是一个匿名内部类</p>
+<p>那这里就可以直接用lambda表达式直接简化代码.</p>
+<p>这样写,就比用CriteriaBuilder安全查询工厂简单多了.</p>
+</blockquote>
+<p>调用:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Page&lt;Item&gt; itemPageList = findByConditions(<span class="string">"车"</span>, <span class="number">300</span>, <span class="keyword">null</span>, <span class="keyword">new</span> PageRequest(<span class="number">1</span>, <span class="number">10</span>));</div></pre></td></tr></table></figure>
+<p>利用JPA的<code>Specification&lt;T&gt;</code>接口和元模型就实现动态查询了.</p>
+<p>那其实这样每一个需要动态查询的地方都需要写一个这样类似的<code>findByConditions</code>方法,感觉也很麻烦了.当然是越简化越好.</p>
+<p>下一篇将会讲一个JPA<code>Specification</code>更方便的使用.</p>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"><i class="fa fa-tag"></i> spring</a>
+          
+            <a href="/tags/jpa/" rel="tag"><i class="fa fa-tag"></i> jpa</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/09/spring-data-jpa-的使用/" rel="next" title="Spring Data JPA 的使用">
+                <i class="fa fa-chevron-left"></i> Spring Data JPA 的使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/10/Spring-Data-JPA-动态查询黑科技/" rel="prev" title="Spring-Data-JPA 动态查询黑科技">
+                Spring-Data-JPA 动态查询黑科技 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -527,6 +714,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -789,10 +980,10 @@
 
 
   
-    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
 <script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
 
-  
+
 
   
 
