@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://fireyao.me/"/>
-  <updated>2017-10-10T05:02:06.539Z</updated>
+  <updated>2017-10-11T07:54:21.201Z</updated>
   <id>http://fireyao.me/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://fireyao.me/2017/10/10/Spring-Data-JPA-%E5%8A%A8%E6%80%81%E6%9F%A5%E8%AF%A2%E9%BB%91%E7%A7%91%E6%8A%80/"/>
     <id>http://fireyao.me/2017/10/10/Spring-Data-JPA-动态查询黑科技/</id>
     <published>2017-10-10T04:55:16.000Z</published>
-    <updated>2017-10-10T05:02:06.539Z</updated>
+    <updated>2017-10-11T07:54:21.201Z</updated>
     
     <content type="html"><![CDATA[<p>在开发中,用到动态查询的地方,所有的查询条件包括分页参数,都会被封装成一个查询类<code>XxxQuery</code></p>
 <p>比如说上一篇中的<code>Item</code></p>
@@ -39,10 +39,10 @@
 <p>在<code>BaseQuery</code>里,就通过<code>toSpecWithAnd()</code> <code>toSpecWithOr()</code>方法动态构建出了查询条件.</p>
 <p>那现在<code>ItemQuery</code>就要继承<code>BaseQuery</code>,并实现<code>toSpec()</code>抽象方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Data</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ItemQuery</span> <span class="keyword">extends</span> <span class="title">BaseQuery</span>&lt;<span class="title">Item</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@QueryWord</span>(column = <span class="string">"item_id"</span>, func = MatchType.equal)</div><div class="line">    <span class="keyword">private</span> Integer itemId;</div><div class="line"></div><div class="line">    <span class="meta">@QueryWord</span>(func = MatchType.like)</div><div class="line">    <span class="keyword">private</span> String itemName;</div><div class="line">  </div><div class="line">    <span class="meta">@QueryWord</span>(func = MatchType.le)</div><div class="line">    <span class="keyword">private</span> Integer itemPrice;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Specification&lt;Item&gt; <span class="title">toSpec</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.toSpecWithAnd();<span class="comment">//所有条件用and连接</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>当然肯定还有其他不能在BaseQuery中构建的查询条件,就在子类的toSpec()实现中添加,</p>
-<p>比如and和or条件同时存在,这样:<code>ItemQuery</code>条件改成这样</p>
+<p>当然肯定还有其他不能在BaseQuery中构建的查询条件,那就在子类的toSpec()实现中添加,</p>
+<p>比如下面的例子,<code>ItemQuery</code>条件改成这样</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@QueryWord</span>(column = <span class="string">"item_id"</span>, func = MatchType.equal)</div><div class="line"><span class="keyword">private</span> Integer itemId;</div><div class="line"></div><div class="line"><span class="meta">@QueryWord</span>(func = MatchType.like)</div><div class="line"><span class="keyword">private</span> String itemName;</div><div class="line"></div><div class="line"><span class="comment">//价格范围查询</span></div><div class="line"><span class="keyword">private</span> Integer itemPriceMin;</div><div class="line"><span class="keyword">private</span> Integer itemPriceMax;</div></pre></td></tr></table></figure>
-<p>那其他条件就可以在<code>toSpec()</code>添加</p>
+<p>那其他条件就可以在<code>toSpec()</code>添加,这样就可以很灵活的构建查询条件了</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> Specification&lt;Item&gt; <span class="title">toSpec</span><span class="params">()</span> </span>&#123;</div><div class="line">    Specification&lt;Item&gt; spec = <span class="keyword">super</span>.toSpecWithAnd();</div><div class="line">    <span class="keyword">return</span> ((root, criteriaQuery, criteriaBuilder) -&gt; &#123;</div><div class="line">        List&lt;Predicate&gt; predicatesList = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        predicatesList.add(spec.toPredicate(root, criteriaQuery, criteriaBuilder));</div><div class="line">        <span class="keyword">if</span> (itemPriceMin != <span class="keyword">null</span>) &#123;</div><div class="line">            predicatesList.add(</div><div class="line">                    criteriaBuilder.and(</div><div class="line">                            criteriaBuilder.ge(</div><div class="line">                                    root.get(Item_.itemPrice), itemPriceMin)));</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (itemPriceMax != <span class="keyword">null</span>) &#123;</div><div class="line">            predicatesList.add(</div><div class="line">                    criteriaBuilder.and(</div><div class="line">                            criteriaBuilder.le(</div><div class="line">                                    root.get(Item_.itemPrice), itemPriceMax)));</div><div class="line">        &#125;</div><div class="line">       <span class="keyword">return</span> criteriaBuilder.and(predicatesList.toArray(<span class="keyword">new</span> Predicate[predicatesList.size()]));</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>调用:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test1</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    ItemQuery itemQuery = <span class="keyword">new</span> ItemQuery();</div><div class="line">    itemQuery.setItemName(<span class="string">"车"</span>);</div><div class="line">    itemQuery.setItemPriceMax(<span class="number">50</span>);</div><div class="line">    itemQuery.setItemPriceMax(<span class="number">200</span>);</div><div class="line">    Pageable pageable = itemQuery.toPageable(<span class="keyword">new</span> Sort(Sort.Direction.ASC, <span class="string">"itemId"</span>));</div><div class="line">    Page&lt;Item&gt; all = itemRepository.findAll(itemQuery.toSpec(), pageable);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -934,34 +934,6 @@
   </entry>
   
   <entry>
-    <title>Hello World</title>
-    <link href="http://fireyao.me/2017/06/21/hello-world/"/>
-    <id>http://fireyao.me/2017/06/21/hello-world/</id>
-    <published>2017-06-21T05:18:27.000Z</published>
-    <updated>2017-08-21T01:24:50.091Z</updated>
-    
-    <content type="html"><![CDATA[<h3 id="进来你就是我的人了"><a href="#进来你就是我的人了" class="headerlink" title="进来你就是我的人了"></a>进来你就是我的人了</h3><p> <b>一颗赛艇</b><br> 苟利国家生死以<br> 岂因福祸趋避之<br><a id="more"></a></p>
-<h3 id="我跟你讲不要搞大新闻"><a href="#我跟你讲不要搞大新闻" class="headerlink" title="我跟你讲不要搞大新闻"></a>我跟你讲不要搞大新闻</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span>(alive)&#123;</div><div class="line">    your.minit = <span class="number">59</span>s;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>你觉得你跑得快是不是</p>
-<h3 id="别往下看，没了"><a href="#别往下看，没了" class="headerlink" title="别往下看，没了"></a>别往下看，没了</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/(o_ _)ﾉ</div></pre></td></tr></table></figure>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h3 id=&quot;进来你就是我的人了&quot;&gt;&lt;a href=&quot;#进来你就是我的人了&quot; class=&quot;headerlink&quot; title=&quot;进来你就是我的人了&quot;&gt;&lt;/a&gt;进来你就是我的人了&lt;/h3&gt;&lt;p&gt; &lt;b&gt;一颗赛艇&lt;/b&gt;&lt;br&gt; 苟利国家生死以&lt;br&gt; 岂因福祸趋避之&lt;br&gt;
-    
-    </summary>
-    
-      <category term="随笔" scheme="http://fireyao.me/categories/%E9%9A%8F%E7%AC%94/"/>
-    
-    
-      <category term="Hello" scheme="http://fireyao.me/tags/Hello/"/>
-    
-      <category term="膜法" scheme="http://fireyao.me/tags/%E8%86%9C%E6%B3%95/"/>
-    
-  </entry>
-  
-  <entry>
     <title>Hexo+github一步一步搭建个人博客</title>
     <link href="http://fireyao.me/2017/06/21/hexo-github-blog/"/>
     <id>http://fireyao.me/2017/06/21/hexo-github-blog/</id>
@@ -1036,6 +1008,34 @@
       <category term="hexo" scheme="http://fireyao.me/tags/hexo/"/>
     
       <category term="github" scheme="http://fireyao.me/tags/github/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="http://fireyao.me/2017/06/21/hello-world/"/>
+    <id>http://fireyao.me/2017/06/21/hello-world/</id>
+    <published>2017-06-21T05:18:27.000Z</published>
+    <updated>2017-08-21T01:24:50.091Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="进来你就是我的人了"><a href="#进来你就是我的人了" class="headerlink" title="进来你就是我的人了"></a>进来你就是我的人了</h3><p> <b>一颗赛艇</b><br> 苟利国家生死以<br> 岂因福祸趋避之<br><a id="more"></a></p>
+<h3 id="我跟你讲不要搞大新闻"><a href="#我跟你讲不要搞大新闻" class="headerlink" title="我跟你讲不要搞大新闻"></a>我跟你讲不要搞大新闻</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span>(alive)&#123;</div><div class="line">    your.minit = <span class="number">59</span>s;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你觉得你跑得快是不是</p>
+<h3 id="别往下看，没了"><a href="#别往下看，没了" class="headerlink" title="别往下看，没了"></a>别往下看，没了</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/(o_ _)ﾉ</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;进来你就是我的人了&quot;&gt;&lt;a href=&quot;#进来你就是我的人了&quot; class=&quot;headerlink&quot; title=&quot;进来你就是我的人了&quot;&gt;&lt;/a&gt;进来你就是我的人了&lt;/h3&gt;&lt;p&gt; &lt;b&gt;一颗赛艇&lt;/b&gt;&lt;br&gt; 苟利国家生死以&lt;br&gt; 岂因福祸趋避之&lt;br&gt;
+    
+    </summary>
+    
+      <category term="随笔" scheme="http://fireyao.me/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+      <category term="Hello" scheme="http://fireyao.me/tags/Hello/"/>
+    
+      <category term="膜法" scheme="http://fireyao.me/tags/%E8%86%9C%E6%B3%95/"/>
     
   </entry>
   
