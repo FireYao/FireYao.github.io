@@ -280,9 +280,9 @@ public class ItemQuery extends BaseQuery<Item> {
 
 
 
-当然肯定还有其他不能在BaseQuery中构建的查询条件,就在子类的toSpec()实现中添加,
+当然肯定还有其他不能在BaseQuery中构建的查询条件,那就在子类的toSpec()实现中添加,
 
-比如and和or条件同时存在,这样:`ItemQuery`条件改成这样
+比如下面的例子,`ItemQuery`条件改成这样
 
 ```java
 @QueryWord(column = "item_id", func = MatchType.equal)
@@ -296,7 +296,7 @@ private Integer itemPriceMin;
 private Integer itemPriceMax;
 ```
 
-那其他条件就可以在`toSpec()`添加
+那其他条件就可以在`toSpec()`添加,这样就可以很灵活的构建查询条件了
 
 ```java
 @Override
