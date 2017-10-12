@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://fireyao.me/"/>
-  <updated>2017-10-11T07:54:21.201Z</updated>
+  <updated>2017-10-12T03:04:42.364Z</updated>
   <id>http://fireyao.me/</id>
   
   <author>
@@ -14,6 +14,58 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>JPA注解@Enumerated映射枚举字段</title>
+    <link href="http://fireyao.me/2017/10/12/JPA%E6%B3%A8%E8%A7%A3-Enumerated%E6%98%A0%E5%B0%84%E6%9E%9A%E4%B8%BE%E5%AD%97%E6%AE%B5/"/>
+    <id>http://fireyao.me/2017/10/12/JPA注解-Enumerated映射枚举字段/</id>
+    <published>2017-10-12T02:59:34.000Z</published>
+    <updated>2017-10-12T03:04:42.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>在javax.persistence包中有这么两个注解@Enumerated,@EnumType</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"> */</div><div class="line"><span class="meta">@Target</span>(&#123;METHOD, FIELD&#125;)</div><div class="line"><span class="meta">@Retention</span>(RUNTIME)</div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Enumerated &#123;</div><div class="line"></div><div class="line">    <span class="comment">/** (Optional) The type used in mapping an enum type. */</span></div><div class="line">    <span class="function">EnumType <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> ORDINAL</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> EnumType &#123;</div><div class="line">    <span class="comment">/** 持久枚举类型字段为整数，元素一般从0开始索引. */</span></div><div class="line">    ORDINAL,</div><div class="line"></div><div class="line">    <span class="comment">/** 持久枚举类型为字符串. */</span></div><div class="line">    STRING</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当我需要持久化一个枚举类字段的时候，就可以用<code>@Enumerated</code>来标注枚举类型。来举个栗子：</p>
+<a id="more"></a>
+<p>数据库中有一张employee表</p>
+<p><img src="http://oqnan33k8.bkt.clouddn.com/spring/jpa/%E6%B3%A8%E8%A7%A3/employee.png" alt=""></p>
+<p>对应的Employee实体</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Entity</span></div><div class="line"><span class="meta">@Table</span>(name = <span class="string">"employee"</span>, schema = <span class="string">"public"</span>)</div><div class="line"><span class="meta">@Data</span></div><div class="line"><span class="meta">@Builder</span></div><div class="line"><span class="meta">@AllArgsConstructor</span></div><div class="line"><span class="meta">@NoArgsConstructor</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Id</span></div><div class="line">    <span class="meta">@GeneratedValue</span></div><div class="line">    <span class="meta">@Column</span>(name = <span class="string">"id"</span>)</div><div class="line">    <span class="keyword">private</span> Long id;</div><div class="line"></div><div class="line">    <span class="meta">@Column</span>(name = <span class="string">"name"</span>)</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line"></div><div class="line">    <span class="meta">@Column</span>(name = <span class="string">"sex"</span>)</div><div class="line">    <span class="meta">@Enumerated</span>(EnumType.ORDINAL)<span class="comment">//性别字段持久化为0，1</span></div><div class="line">    <span class="keyword">private</span> Sex sex;</div><div class="line"></div><div class="line">    <span class="meta">@Column</span>(name = <span class="string">"type"</span>)</div><div class="line">    <span class="meta">@Enumerated</span>(EnumType.STRING)<span class="comment">//枚举字符串</span></div><div class="line">    <span class="keyword">private</span> Type type;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Sex枚举类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Sex &#123;</div><div class="line"></div><div class="line">    MAIL(<span class="string">"男"</span>),</div><div class="line">    FMAIL(<span class="string">"女"</span>);</div><div class="line"></div><div class="line">    <span class="keyword">private</span> String value;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Sex</span><span class="params">(String value)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.value = value;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Type枚举类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> Type &#123;</div><div class="line"></div><div class="line">    PROGRAMMER(<span class="string">"开发"</span>),</div><div class="line">    PM(<span class="string">"项目经理"</span>),</div><div class="line">    TESTERS(<span class="string">"测试"</span>),</div><div class="line">    UI(<span class="string">"妹子"</span>),</div><div class="line">    ;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> String type;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Type</span><span class="params">(String type)</span> </span>&#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>那现在我们来看一下插入几条数据看下是什么效果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">EmployeeRepostory employeeRepostory = context.getBean(EmployeeRepostory.class);</div><div class="line"></div><div class="line">Employee fireYao = Employee.builder().name(<span class="string">"fireYao"</span>).sex(Sex.MAIL).type(Type.PROGRAMMER).build();</div><div class="line"></div><div class="line">Employee gakki = Employee.builder().name(<span class="string">"gakki"</span>).sex(Sex.FMAIL).type(Type.UI).build();</div><div class="line"></div><div class="line">Employee whoever = Employee.builder().name(<span class="string">"whoever"</span>).sex(Sex.FMAIL).type(Type.PM).build();</div><div class="line"></div><div class="line">employeeRepostory.save(Arrays.asList(fireYao,gakki,whoever));</div></pre></td></tr></table></figure>
+<p>插入数据后，数据库中：</p>
+<p><img src="http://oqnan33k8.bkt.clouddn.com/spring/jpa/%E6%B3%A8%E8%A7%A3/employee_data.png" alt=""></p>
+<p>可以看到，sex字段被持久化为0,1这样的int字段，因为在sex字段上标注了<code>@Enumerated(EnumType.ORDINAL)</code>，那这样持久化到数据库时，就会根据枚举类中的字段，依次从0开始标记，Sex中<code>MAIL(&quot;男&quot;)</code>就为0,<code>FMAIL(&quot;女&quot;)</code>就为1,根据枚举类的字段个数依次递增。</p>
+<p>在type字段上标注了<code>@Enumerated(EnumType.STRING)</code>,就直接根据枚举类的字段字符串来自动持久化到数据库。</p>
+<p>如果枚举字段上不加注解，那么枚举字段就会被默认映射为 int 类型存储。</p>
+<p>那现在我们来看查询一下的结果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">List&lt;Employee&gt; all = employeeRepostory.findAll();</div></pre></td></tr></table></figure>
+<p><img src="http://oqnan33k8.bkt.clouddn.com/spring/jpa/%E6%B3%A8%E8%A7%A3/employee_result.png" alt=""></p>
+<p>可以看到，查询出来的结果中sex字段又自动还原成了Sex枚举字段。</p>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;在javax.persistence包中有这么两个注解@Enumerated,@EnumType&lt;/p&gt;
+&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt; */&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;meta&quot;&gt;@Target&lt;/span&gt;(&amp;#123;METHOD, FIELD&amp;#125;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;meta&quot;&gt;@Retention&lt;/span&gt;(RUNTIME)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;meta&quot;&gt;@interface&lt;/span&gt; Enumerated &amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;comment&quot;&gt;/** (Optional) The type used in mapping an enum type. */&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;EnumType &lt;span class=&quot;title&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;default&lt;/span&gt; ORDINAL&lt;/span&gt;;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;enum&lt;/span&gt; EnumType &amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;comment&quot;&gt;/** 持久枚举类型字段为整数，元素一般从0开始索引. */&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    ORDINAL,&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;comment&quot;&gt;/** 持久枚举类型为字符串. */&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    STRING&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;当我需要持久化一个枚举类字段的时候，就可以用&lt;code&gt;@Enumerated&lt;/code&gt;来标注枚举类型。来举个栗子：&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="spring" scheme="http://fireyao.me/categories/spring/"/>
+    
+    
+      <category term="spring" scheme="http://fireyao.me/tags/spring/"/>
+    
+      <category term="jpa" scheme="http://fireyao.me/tags/jpa/"/>
+    
+      <category term="hibernate" scheme="http://fireyao.me/tags/hibernate/"/>
+    
+  </entry>
   
   <entry>
     <title>Spring-Data-JPA 动态查询黑科技</title>
